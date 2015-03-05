@@ -2,13 +2,13 @@
 /**
  * Created by alwoss on 3/5/15.
  */
-var brawndo = require('brawndo');
+var brawndo = require('./brawndo');
 
 brawndo.configure({
-  public_key : 'my_public_key',                         // required
-  api_url : 'https://brawndo-api.dropoff.com',          // required
-  private_key : 'my_private_key',                       // either this or hasher_url
-  hasher_url : 'http://www.myserver.com/api/do_hash'    // either this or private_key
+  api_url : 'http://localhost:9094',                                                      // required
+  public_key : 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8',  // required
+  private_key : '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482'        // either this or hasher_url
+//  hasher_url : 'http://www.myserver.com/api/do_hash'  // either this or private_key
 });
 
 var origin = {
@@ -42,13 +42,15 @@ var destination = {
 };
 
 var details = {
-  eta : '',                 // required
-  distance : '',            // required
-  reference_name : '',      // required
-  reference_code : '',      // required
-  price : '',               // required
-  type : '',                // required
-  ready_date : 1425578400   // required
+  quantity : 1,                   // required
+  weight : 5,                     // required
+  eta : void(0),                  // required
+  distance : void(0),             // required
+  price : void(0),                // required
+  type : void(0),                 // required
+  ready_date : 1425578400,        // required
+  reference_name : void(0),       // optional
+  reference_code : void(0)        // optional
 };
 
 var estimateParameters = {
@@ -58,7 +60,72 @@ var estimateParameters = {
   utc_offset : '-06:00'                                               // required
 };
 
-brawndo.getEstimate(estimateParameters, function(error, estimate_date) {
+brawndo.getEstimate(estimateParameters, function(error, estimate_data) {
+/*
+ Example response:
+ {
+   success : true,
+   timestamp: '2015-03-05T14:51:14+00:00',
+   data : {
+     "ETA": "243.1",
+     "Distance": "0.62",
+     "From": "78701",
+     "To": "78701",
+     "asap": {
+       "Price": "19.00",
+       "ETA": "243.1",
+       "Distance": "0.62"
+     },
+     "two_hr": {
+       "Price": "17.00",
+       "ETA": "243.1",
+       "Distance": "0.62"
+     },
+     "four_hr": {
+       "Price": "15.00",
+       "ETA": "243.1",
+       "Distance": "0.62"
+     },
+     "after_hr": {
+       "Price": "21.00",
+       "ETA": "243.1",
+       "Distance": "0.62"
+     },
+     "holiday": {
+       "Price": "31.00",
+       "ETA": "243.1",
+       "Distance": "0.62"
+     }
+   }
+ }
 
+ */
+  if (estimate_data && estimate_data.data) {
+    details.eta = estimate_data.data.ETA;
+    details.distance = estimate_data.data.Distance;
+  }
+
+  if (!error && estimate_data && estimate_data.data && estimate_data.data.asap) {
+    details.price = estimate_data.data.asap.Price;
+    details.type = 'asap';
+  } else if (!error && estimate_data && estimate_data.data && estimate_data.data.two_hr) {
+    details.price = estimate_data.data.two_hr.Price;
+    details.type = 'two_hr';
+  } else if (!error && estimate_data && estimate_data.data && estimate_data.data.four_hr) {
+    details.price = estimate_data.data.four_hr.Price;
+    details.type = 'four_hr';
+  } else {
+    console.log(error);
+    console.log(estimate_data);
+  }
+
+  brawndo.submitOrder({
+    origin : origin,
+    destination : destination,
+    details : details
+  }, function(error, data) {
+    console.log(error);
+    console.log(data);
+  });
 });
 
