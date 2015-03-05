@@ -136,7 +136,7 @@ module.exports.getEstimate = function(params, callback) {
     throw new Error('Call configure before calling the api');
   }
 
-  if (!params.pickup || !params.destination) {
+  if (!params.origin || !params.destination) {
     throw new Error('Call requires pickup and destination query parameters');
   }
 
@@ -163,8 +163,7 @@ module.exports.submitOrder = function(params, callback) {
     .post(API_ORDER_URL)
     .set('Accept', 'application/json')
     .send(params)
-    .use(signing_mw(API_ORDER_PATH))
-    .end(function(error, response){
+    .use(signing_mw(API_ORDER_PATH, function(error, response){
       if (error) {
         callback(error);
       } else if (response.status === 200 && response.body) {
@@ -172,7 +171,7 @@ module.exports.submitOrder = function(params, callback) {
       } else {
         callback(new Error('response.status is ' + response.status), response.body);
       }
-    });
+    }));
 };
 
 module.exports.getOrder = function(order_id, callback) {
