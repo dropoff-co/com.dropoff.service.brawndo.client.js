@@ -2,7 +2,6 @@
 /**
  * Created by alwoss on 2/27/15.
  */
-var _       = require('lodash');
 var request = require('superagent');
 
 var signing = require('./signing');
