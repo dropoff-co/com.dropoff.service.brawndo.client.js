@@ -27,9 +27,13 @@ var signing_mw = function(path, callback) {
     request.set('X-Dropoff-Date', timestamp);
 
     var headers = request._header;
-    if ((!headers || _.size(headers) === 0) && request.header && _.size(request.header) > 0) {
-      headers = request.header;
-    } else if (!headers || _.size(headers) === 0) {
+    var headers_size = headers ? Object.keys(headers).length : 0;
+    var req_header = request.header;
+    var req_header_size = req_header ? Object.keys(req_header).length : 0;
+
+    if ((!headers || headers_size === 0) && req_header && req_header_size > 0) {
+      headers = req_header;
+    } else if (!headers || headers_size === 0) {
       headers = {};
       headers['x-dropoff-date'] = request.get('X-Dropoff-Date');
       headers.accept = request.get('Accept');
