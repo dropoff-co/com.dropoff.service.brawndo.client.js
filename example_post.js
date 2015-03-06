@@ -5,7 +5,7 @@
 var brawndo = require('./brawndo');
 
 brawndo.configure({
-  api_url : 'http://localhost:9094',                                                      // required
+  api_url : 'http://localhost:9094/v1',                                                      // required
   public_key : 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8',  // required
   private_key : '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482'        // either this or hasher_url
 //  hasher_url : 'http://www.myserver.com/api/do_hash'  // either this or private_key

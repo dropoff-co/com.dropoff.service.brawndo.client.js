@@ -4,7 +4,6 @@
  */
 var _             = require('lodash');
 var async         = require('async');
-var moment        = require('moment');
 var request       = require('superagent');
 var CryptoJS      = { enc : {} };
 
@@ -32,10 +31,19 @@ var doHmac = function(message, key) {
   return hash.toString(CryptoJS.enc.Hex);
 };
 
+var doPrependZero = function(value) {
+  if (value < 10) {
+    value = '0' + value;
+  }
+  return '' + value;
+};
+
 module.exports.generateXDropoffDate = function() {
-  var timestamp = moment();
-  var x_dropoff_date = timestamp.utc().format('YYYYMMDDTHHmmss') + 'Z';
-  var x_dropoff_date_key = timestamp.utc().format('YYYYMMDD');
+  var timestamp = new Date();
+
+  var x_dropoff_date_key = timestamp.getUTCFullYear() + doPrependZero((timestamp.getUTCMonth() + 1)) + doPrependZero(timestamp.getUTCDate());
+  var x_dropoff_date = x_dropoff_date_key + 'T' + doPrependZero(timestamp.getUTCHours()) + doPrependZero(timestamp.getUTCMinutes()) + doPrependZero(timestamp.getUTCSeconds()) + 'Z';
+
   return {
     x_dropoff_date : x_dropoff_date,
     x_dropoff_date_key : x_dropoff_date_key
