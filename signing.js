@@ -137,7 +137,7 @@ module.exports.sign = function(params, callback) {
     if (params.query) {
       var keys = Object.keys(params.query).sort();
       var index = 0;
-      keys.forEach(keys, function(key) {
+      keys.forEach(function(key) {
         doWrite((key + '=' + encodeURIComponent(params.query[key])));
         index++;
         if (index !== keys.length) {
@@ -156,7 +156,7 @@ module.exports.sign = function(params, callback) {
       header_keys = '';
       var keys = params.signed_headers.sort();
       var indx = 0;
-      keys.forEach(keys, function(key) {
+      keys.forEach(function(key) {
         header_keys += key.toLowerCase();
         doWrite((key.toLowerCase() + ':' + params.headers[key].trim()));
         indx++;
