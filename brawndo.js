@@ -46,7 +46,7 @@ var signing_mw = function(path, callback) {
       private_key : private_key,
       hasher_url : hasher_url,
       headers : headers,
-      signed_headers : _.keys(headers),
+      signed_headers : Object.keys(headers),
       path : path
     };
 
