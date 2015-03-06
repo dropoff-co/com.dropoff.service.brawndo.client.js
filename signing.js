@@ -2,7 +2,6 @@
 /**
  * Created by alwoss on 2/27/15.
  */
-var _             = require('lodash');
 var async         = require('async');
 var request       = require('superagent');
 var CryptoJS      = { enc : {} };
@@ -92,12 +91,21 @@ module.exports.sign = function(params, callback) {
     if (validateParams(params)) {
       x_dropoff_date = params.headers['x-dropoff-date'];
       x_dropoff_date_key = x_dropoff_date.substring(0, 8);
-      params.headers = _.transform(params.headers, function(result, value, key) {
-        result[key.toLowerCase()] = value;
+
+      var transformed_headers = {};
+      for (var key in params.headers) {
+        if (params.headers.hasOwnProperty(key)) {
+          transformed_headers[key.toLowerCase()] = params.headers[key];
+        }
+      }
+      params.headers = transformed_headers;
+
+      var transformed_signed_headers = [];
+      params.signed_headers.forEach(function(value) {
+        transformed_signed_headers.push(value.toLowerCase());
       });
-      params.signed_headers = _.transform(params.signed_headers, function(result, value) {
-        result.push(value.toLowerCase());
-      });
+      params.signed_headers = transformed_signed_headers;
+
       cb(NO_ERROR, DONE);
     } else {
       cb(new Error('Expected private_key, method, url, headers, and signed_headers in params.  query is optional.'));
