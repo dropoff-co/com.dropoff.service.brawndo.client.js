@@ -60,7 +60,7 @@ var estimateParameters = {
   utc_offset : '-06:00'                                               // required
 };
 
-brawndo.getEstimate(estimateParameters, function(error, estimate_data) {
+brawndo.order.estimate(estimateParameters, function(error, estimate_data) {
 /*
  Example response:
  {
@@ -119,7 +119,7 @@ brawndo.getEstimate(estimateParameters, function(error, estimate_data) {
     console.log(estimate_data);
   }
 
-  brawndo.submitOrder({
+  brawndo.order.create({
     origin : origin,
     destination : destination,
     details : details

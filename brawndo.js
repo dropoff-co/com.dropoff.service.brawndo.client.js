@@ -116,25 +116,9 @@ module.exports.configure = function(params) {
   configured = true;
 };
 
-module.exports.info = function(callback) {
-  if (!configured) {
-    throw new Error('Call configure before calling the api');
-  }
-  request
-    .get(API_INFO_URL)
-    .set('Accept', 'application/json')
-    .use(signing_mw(API_INFO_PATH, function(error, response){
-      if (error) {
-        callback(error);
-      } else if (response.status === 200 && response.body) {
-        callback(void(0), response.body);
-      } else {
-        callback(new Error('response.status is ' + response.status), response.body);
-      }
-    }));
-};
+module.exports.order = {};
 
-module.exports.getEstimate = function(params, callback) {
+module.exports.order.estimate = function(params, callback) {
   if (!configured) {
     throw new Error('Call configure before calling the api');
   }
@@ -158,7 +142,7 @@ module.exports.getEstimate = function(params, callback) {
     }));
 };
 
-module.exports.submitOrder = function(params, callback) {
+module.exports.order.create = function(params, callback) {
   if (!configured) {
     throw new Error('Call configure before calling the api');
   }
@@ -177,7 +161,39 @@ module.exports.submitOrder = function(params, callback) {
     }));
 };
 
-module.exports.getOrder = function(order_id, callback) {
+
+var getOrders = function(callback) {
+  request
+    .get(API_ORDER_URL)
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH, function (error, response) {
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        callback(new Error('response.status is ' + response.status), response.body);
+      }
+    }));
+};
+
+var getOrdersFrom = function(last_key, callback) {
+  request
+    .get(API_ORDER_URL)
+    .query({ last_key : last_key })
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        callback(new Error('response.status is ' + response.status), response.body);
+      }
+    }));
+};
+
+var getOrder = function(order_id, callback) {
   if (!order_id) {
     throw new Error('Call requires pickup and destination query parameters');
   }
@@ -196,33 +212,16 @@ module.exports.getOrder = function(order_id, callback) {
     }));
 };
 
-module.exports.getOrders = function(callback) {
-  request
-    .get(API_ORDER_URL)
-    .set('Accept', 'application/json')
-    .use(signing_mw(API_ORDER_PATH, function (error, response) {
-      if (error) {
-        callback(error);
-      } else if (response.status === 200 && response.body) {
-        callback(void(0), response.body);
-      } else {
-        callback(new Error('response.status is ' + response.status), response.body);
-      }
-    }));
-};
-
-module.exports.getOrdersFrom = function(last_key, callback) {
-  request
-    .get(API_ORDER_URL)
-    .query({ last_key : last_key })
-    .set('Accept', 'application/json')
-    .use(signing_mw(API_ORDER_PATH, function(error, response){
-      if (error) {
-        callback(error);
-      } else if (response.status === 200 && response.body) {
-        callback(void(0), response.body);
-      } else {
-        callback(new Error('response.status is ' + response.status), response.body);
-      }
-    }));
+module.exports.order.read = function(params, callback) {
+  if (typeof params === 'function') {
+    callback = params;
+    params = {};
+  }
+  if (params.order_id) {
+    getOrder(params.order_id, callback);
+  } else if (params.last_key) {
+    getOrdersFrom(params.last_key, callback);
+  } else {
+    getOrders(callback);
+  }
 };

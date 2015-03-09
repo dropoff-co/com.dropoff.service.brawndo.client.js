@@ -66,7 +66,7 @@ Before you place an order you will first want to estimate the distance, eta, and
 * **utc_offset** - the utc offset of the timezone where the order is taking place.  Required.
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
 
-    brawndo.getEstimate(estimateParameters, function(error, estimate_data) {
+    brawndo.order.estimate(estimateParameters, function(error, estimate_data) {
     });
 
 An example of a successful response will look like this:
@@ -196,9 +196,9 @@ The details contain attributes about the order
 * **reference_name** - a field for your internal referencing. Optional.
 * **reference_code** - a field for your internal referencing. Optional.
 
-Once this data is created, you can submit the order.
+Once this data is created, you can create the order.
 
-    brawndo.submitOrder({
+    brawndo.order.create({
         origin : origin,
         destination : destination,
         details : details
@@ -206,3 +206,17 @@ Once this data is created, you can submit the order.
     });
 
 The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
+
+
+### Getting a specific order
+
+    brawndo.order.read({order_id : 'zzzz-zzzz-zzz'}, function(error, data) {
+    });
+
+### Getting a page order
+
+    brawndo.order.read(function(error, data) {
+    });
+
+    brawndo.order.read({last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'}, function(error, data) {
+    });
