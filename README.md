@@ -213,6 +213,76 @@ The data in the callback will contain the id of the new order as well as the url
     brawndo.order.read({order_id : 'zzzz-zzzz-zzz'}, function(error, data) {
     });
 
+Example response
+
+    {
+         data: {
+             destination: {
+                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
+                 short_id: '06ex-r3zV-BMb',
+                 createdate: 1425653646,
+                 updatedate: 1425653646,
+                 order_status_code: 0,
+                 company_name: 'Dropoff Inc.',
+                 first_name: 'Algis',
+                 last_name: 'Woss',
+                 address_line_1: '800 Brazos Street',
+                 address_line_2: '250',
+                 city: 'Austin',
+                 state: 'TX',
+                 zip: '78701',
+                 phone_number: '8444376763',
+                 email_address: 'deliveries@dropoff.com',
+                 lng: -97.740838,
+                 lat: 30.269967
+             },
+             details: {
+                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
+                 short_id: '06ex-r3zV-BMb',
+                 createdate: 1425653646,
+                 customer_name: 'Algis Woss',
+                 type: 'ASAP',
+                 market: 'austin',
+                 timezone: 'America/Chicago',
+                 price: '15.00',
+                 signed: 'false',
+                 distance: '0.62',
+                 order_status_code: 0,
+                 wait_time: 0,
+                 order_status_name: 'Submitted',
+                 pickupETA: 'TBD',
+                 deliveryETA: '243.1',
+                 signature_exists: 'NO',
+                 quantity: 1,
+                 weight: 5,
+                 readyforpickupdate: 1425578400,
+                 updatedate: 1425653646
+             },
+             origin: {
+                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
+                 short_id: '06ex-r3zV-BMb',
+                 createdate: 1425653646,
+                 updatedate: 1425653646,
+                 order_status_code: 0,
+                 company_name: 'Gus's Fried Chicken',
+                 first_name: 'Napoleon',
+                 last_name: 'Bonner',
+                 address_line_1: '117 San Jacinto Blvd',
+                 city: 'Austin',
+                 state: 'TX',
+                 zip: '78701',
+                 phone_number: '5124744877',
+                 email_address: 'orders@gussfriedchicken.com',
+                 lng: -97.741703,
+                 lat: 30.263706,
+                 market: 'austin',
+                 remarks: 'Be nice to napoleon'
+             }
+        },
+        success: true,
+        timestamp: '2015-03-09T18:42:15+00:00'
+    }
+
 ### Getting a page order
 
     brawndo.order.read(function(error, data) {
@@ -220,3 +290,14 @@ The data in the callback will contain the id of the new order as well as the url
 
     brawndo.order.read({last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'}, function(error, data) {
     });
+
+Example response
+
+    {
+        data: [ ... ],
+        count: 10,
+        total: 248,
+        last_key: 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas',
+        success: true,
+        timestamp: '2015-03-09T18:42:15+00:00'
+    }
