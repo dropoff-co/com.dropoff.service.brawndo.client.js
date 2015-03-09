@@ -201,7 +201,7 @@ var getOrder = function(order_id, callback) {
   request
     .get(API_ORDER_URL + '/' + order_id)
     .set('Accept', 'application/json')
-    .use(signing_mw(API_ORDER_PATH, function(error, response) {
+    .use(signing_mw(API_ORDER_PATH + '/' + order_id, function(error, response) {
       if (error) {
         callback(error);
       } else if (response.status === 200 && response.body) {
