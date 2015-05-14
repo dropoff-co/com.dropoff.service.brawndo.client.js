@@ -11,6 +11,7 @@ var configured = false;
 var public_key = void(0);
 var private_key = void(0);
 var hasher_url = void(0);
+var host = void(0);
 
 var API_INFO_PATH = '/info';
 var API_ESTIMATE_PATH = '/estimate';
@@ -58,7 +59,10 @@ var signing_mw = function(path, callback) {
       params.signed_headers.push('user-agent');
     }
 
-    if (typeof document !== 'undefined' && document.location && document.location.host) {
+    if (host) {
+      headers.host = host;
+      params.signed_headers.push('host');
+    } else if (typeof document !== 'undefined' && document.location && document.location.host) {
       headers.host = document.location.host;
       params.signed_headers.push('host');
     } else if (request.get('user-agent')) {
@@ -99,12 +103,13 @@ module.exports.getConfiguration = function() {
 };
 
 module.exports.configure = function(params) {
-  if (!params.public_key || !(params.private_key || params.hasher_url) || !params.api_url) {
-    throw new Error('Set the public key, private key or hasher_url, and api url');
+  if (!params.public_key || !(params.private_key || params.hasher_url) || !params.api_url || !params.host) {
+    throw new Error('Set the public key, private key or hasher_url, host, and api url');
   }
   public_key  = params.public_key;
   private_key = params.private_key;
   hasher_url  = params.hasher_url;
+  host = params.host;
   var api_url = params.api_url;
 
   if (api_url.indexOf('/') === (api_url.length - 1)) {
