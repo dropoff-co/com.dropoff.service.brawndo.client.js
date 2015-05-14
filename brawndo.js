@@ -212,6 +212,26 @@ var getOrder = function(order_id, callback) {
     }));
 };
 
+var startSimulation = function(market, callback) {
+  if (!market) {
+    throw new Error('Call requires you to specify a market (ie. austin or houston)');
+  }
+
+  request
+    .get(API_ORDER_URL + '/simulate/' + market)
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH  + '/simulate/' + market, function(error, response) {
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        callback(new Error('response.status is ' + response.status), response.body);
+      }
+    }));
+
+};
+
 module.exports.order.read = function(params, callback) {
   if (typeof params === 'function') {
     callback = params;
@@ -224,4 +244,8 @@ module.exports.order.read = function(params, callback) {
   } else {
     getOrders(callback);
   }
+};
+
+module.exports.order.simulate = function(params, callback) {
+  startSimulation(params.market, callback);
 };
