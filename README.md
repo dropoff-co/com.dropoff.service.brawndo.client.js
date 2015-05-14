@@ -14,6 +14,7 @@ You will then have to configure the brawndo instance with the configure function
 
     var configure_params = {};
     configure_params.api_url = 'https://qa-brawndo.dropoff.com/v1';
+    configure_params.host = 'qa-brawndo.dropoff.com';
     configure_params.public_key = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8';
 
     configure_params.private_key = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482';
@@ -23,6 +24,7 @@ You will then have to configure the brawndo instance with the configure function
     configure_params.hasher_url = 'https://myserver.com/sign';
 
 * **api_url** - the url of the brawndo api.  This field is required.
+* **host** - the api host.  This field is required.
 * **public_key** - the public key of the user that will be using the client.  This field is required.
 * **private_key** - the private key of the user that will be using the client.  Can be substituted with **hasher_url**
 * **hasher_url** - the endpoint that can be called to generate the Authorization header on the server side in case you don't want the private key to be stored on your client.
