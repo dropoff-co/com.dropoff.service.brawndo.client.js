@@ -303,3 +303,115 @@ Example response
         success: true,
         timestamp: '2015-03-09T18:42:15+00:00'
     }
+
+
+## Webhooks
+
+You may register a server route with Dropoff to receive real time updates related to your orders.
+
+Your endpoint must handle a post, and should verify the X-Dropoff-Key with the client key given to you when registering the endpoint.
+
+The body of the post should be signed using the HMAC-SHA-512 hashing algorithm combined with the client secret give to you when registering the endpoint.
+
+The format of a post from Dropoff will be:
+
+    {
+        count : 2,
+        data : [ ]
+    }
+
+* **count** contains the number of items in the data array.
+* **data** is an array of events regarding orders and agents processing those orders.
+
+### Backoff algorithm
+
+If your endpoint is unavailable Dropoff will try to resend the events in this manner:
+
+*  Retry 1 after 10 seconds
+*  Retry 2 after twenty seconds
+*  Retry 3 after thirty seconds
+*  Retry 4 after one minute
+*  Retry 5 after five minutes
+*  Retry 6 after ten minutes
+*  Retry 7 after fifteen minutes
+*  Retry 8 after twenty minutes
+*  Retry 9 after thirty minutes
+*  Retry 10 after forty five minutes
+*  All subsequent retries will be after one hour until 24 hours have passed
+
+**If all retries have failed then the cached events will be forever gone from this plane of existence.**
+
+### Events
+
+There are two types of events that your webhook will receive, order update events and agent location events.
+
+All events follow this structure:
+
+    {
+        event_name : <the name of the event ORDER_UPDATED or AGENT_LOCATION>
+        data : { ... }
+    }
+
+* **event_name** is either **ORDER_UPDATED** or **AGENT_LOCATION**
+* **data** contains the event specific information
+
+#### Order Update Event
+
+This event will be triggered when the order is either:
+
+* Accepted by an agent.
+* Picked up by an agent.
+* Delivered by an agent.
+* Cancelled.
+
+This is an example of an order update event
+
+    {
+        event_name: 'ORDER_UPDATED',
+        data: {
+            order_status_code: 1000,
+            company_id: '7df2b0bdb418157609c0d5766fb7fb12',
+            timestamp: '2015-05-15T12:52:55+00:00',
+            order_id: 'klAb-zwm8-mYz',
+            agent_id: 'b7aa983243ccbfa43410888dd205c298'
+        }
+    }
+
+* **order_status_code** can be -1000 (cancelled), 1000 (accepted), 2000 (picked up), or 3000 (delivered)
+* **company_id** is your company id.
+* **timestamp** is a utc timestamp of when the order occured.
+* **order_id** is the id of the order.
+* **agent_id** is the id of the agent that is carrying out your order.
+
+#### Agent Location Update Event
+
+This event is triggered when the location of an agent that is carrying out your order has changed.
+
+    {
+        event_name: 'AGENT_LOCATION',
+        data: {
+            agent_avatar: 'https://s3.amazonaws.com/com.dropoff.alpha.app.workerphoto/b7aa983243ccbfa43410888dd205c298/worker_photo.png?AWSAccessKeyId=AKIAJN2ULWKTZXXEOQDA&Expires=1431695270&Signature=AFKNQdT33lhlEddrGp0kINAR4uw%3D',
+            latitude: 30.2640713,
+            longitude: -97.7469492,
+            order_id: 'klAb-zwm8-mYz',
+            timestamp: '2015-05-15T12:52:50+00:00',
+            agent_id: 'b7aa983243ccbfa43410888dd205c298'
+        }
+    }
+
+* **agent_avatar** is an image url you can use to show the agent.  It expires in 15 minutes.
+* **latitude** and **longitude** reflect the new coordinates of the agent.
+* **timestamp** is a utc timestamp of when the order occured.
+* **order_id** is the id of the order.
+* **agent_id** is the id of the agent that is carrying out your order.
+
+
+#### Simulating an order
+
+You can simulate an order via the brawndo api in order to test your webhooks.
+
+The simulation will create an order, assign it to a simulation agent, and move the agent from pickup to the destination.
+
+**You can only run a simulation once every fifteen minutes.**
+
+    brawndo.order.simulate('austin', function(error, result) {});
