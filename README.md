@@ -1,14 +1,27 @@
+
+
 # com.dropoff.service.brawndo.client
 
 This is the 3rd party dropoff javascript client for creating and viewing orders.
 
-## Using the client
+# Table of Contents
+  + [Client Info](#client)
+    - [Configuration](#configuration)
+    - [Getting Pricing Estimates](#estimates)
+    - [Placing an Order](#placing)
+    - [Getting a Specific Order](#specific)
+    - [Getting a Page of Order](#page)
+  + [Webhook Info](#webhook)
+    - [Webhook Backoff Algorithm](#backoff)
+    - [Webhook Events](#events)
+
+## Using the client <a id="client"></a>
 
 This code should be identical in a browser (assuming you have browserified brawndo.js) or in nodejs.  Brawndo is access via a require call.
 
     var brawndo = require('brawndo');
 
-### Configuration
+### Configuration <a id="configuration"></a>
 
 You will then have to configure the brawndo instance with the configure function.
 
@@ -53,7 +66,7 @@ It's pretty straightforward if you are storing the user information on the serve
 
 The client will handle the rest.
 
-### Getting Pricing Estimates
+### Getting Pricing Estimates <a id="estimates"></a>
 
 Before you place an order you will first want to estimate the distance, eta, and cost for the delivery.  The client provides a **getEstimate** function for this operation.
 
@@ -120,7 +133,7 @@ An example of a successful response will look like this:
 * **after_hr** - the pricing for an order that needs to delivered on a weekend or after 5:30PM on a weekday.
 * **holiday** - the pricing for an order that needs to delivered on a holiday.
 
-### Placing an order
+### Placing an order <a id="placing"></a>
 
 Given a successful estimate call, and a window that you like, then the order can be placed.  An order requires origin information, destination information, and specifics about the order.
 
@@ -210,7 +223,7 @@ Once this data is created, you can create the order.
 The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
 
 
-### Getting a specific order
+### Getting a specific order <a id="specific"></a>
 
     brawndo.order.read({order_id : 'zzzz-zzzz-zzz'}, function(error, data) {
     });
@@ -285,7 +298,7 @@ Example response
         timestamp: '2015-03-09T18:42:15+00:00'
     }
 
-### Getting a page order
+### Getting a page order <a id="page"></a>
 
     brawndo.order.read(function(error, data) {
     });
@@ -305,7 +318,7 @@ Example response
     }
 
 
-## Webhooks
+## Webhooks <a id="webhook"></a>
 
 You may register a server route with Dropoff to receive real time updates related to your orders.
 
@@ -323,7 +336,7 @@ The format of a post from Dropoff will be:
 * **count** contains the number of items in the data array.
 * **data** is an array of events regarding orders and agents processing those orders.
 
-### Backoff algorithm
+### Backoff algorithm <a id="backoff"></a>
 
 If your endpoint is unavailable Dropoff will try to resend the events in this manner:
 
@@ -341,7 +354,7 @@ If your endpoint is unavailable Dropoff will try to resend the events in this ma
 
 **If all retries have failed then the cached events will be forever gone from this plane of existence.**
 
-### Events
+### Events <a id="events"></a>
 
 There are two types of events that your webhook will receive, order update events and agent location events.
 
