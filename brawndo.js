@@ -166,6 +166,23 @@ module.exports.order.create = function(params, callback) {
     }));
 };
 
+module.exports.order.cancel = function(order_id, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+  request
+    .post(API_ORDER_URL + '/' + order_id + '/cancel')
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        callback(new Error('response.status is ' + response.status), response.body);
+      }
+    }));
+};
 
 var getOrders = function(callback) {
   request
