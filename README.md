@@ -9,6 +9,7 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
     - [Configuration](#configuration)
     - [Getting Pricing Estimates](#estimates)
     - [Placing an Order](#placing)
+    - [Cancelling an Order](#cancel)
     - [Getting a Specific Order](#specific)
     - [Getting a Page of Order](#page)
   + [Webhook Info](#webhook)
@@ -223,10 +224,18 @@ Once this data is created, you can create the order.
 The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
 
 
-### Cancelling an order
+### Cancelling an order <a id="cancel"></a>
     brawndo.order.cancel(order_id, function(error, data) {});
     
 * **order_id** - the id of the order to cancel.
+
+An order can be cancelled in these situations
+
+* The order was placed less than **ten minutes** ago.
+* The order ready time is more than **one hour** away.
+* The order has not been picked up.
+* The order has not been cancelled.
+
     
 ### Getting a specific order <a id="specific"></a>
 
