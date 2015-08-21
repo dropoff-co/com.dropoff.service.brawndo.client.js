@@ -9,6 +9,7 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
     - [Configuration](#configuration)
     - [Getting Pricing Estimates](#estimates)
     - [Placing an Order](#placing)
+    - [Cancelling an Order](#cancel)
     - [Getting a Specific Order](#specific)
     - [Getting a Page of Order](#page)
   + [Webhook Info](#webhook)
@@ -206,7 +207,7 @@ The details contain attributes about the order
 * **eta** - the eta from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
 * **distance** - the distance from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
 * **price** - the price for the order.  Should use the value retrieved in the getEstimate call.. Required.
-* **ready_date** - the unix timestamp indicating when the order can be picked up. Can be up to 60 days into the future.  Required.
+* **ready_date** - the unix timestamp (seconds) indicating when the order can be picked up. Can be up to 60 days into the future.  Required.
 * **type** - the order window.  Can be asap, two_hr, four_hr, after_hr, or holiday depending on the ready_date. Required.
 * **reference_name** - a field for your internal referencing. Optional.
 * **reference_code** - a field for your internal referencing. Optional.
@@ -223,6 +224,19 @@ Once this data is created, you can create the order.
 The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
 
 
+### Cancelling an order <a id="cancel"></a>
+    brawndo.order.cancel(order_id, function(error, data) {});
+    
+* **order_id** - the id of the order to cancel.
+
+An order can be cancelled in these situations
+
+* The order was placed less than **ten minutes** ago.
+* The order ready time is more than **one hour** away.
+* The order has not been picked up.
+* The order has not been cancelled.
+
+    
 ### Getting a specific order <a id="specific"></a>
 
     brawndo.order.read({order_id : 'zzzz-zzzz-zzz'}, function(error, data) {
