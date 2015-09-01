@@ -13,35 +13,33 @@ var private_key = void(0);
 var hasher_url = void(0);
 var host = void(0);
 
-var API_INFO_PATH = '/info';
 var API_ESTIMATE_PATH = '/estimate';
 var API_ORDER_PATH = '/order';
 
-var API_INFO_URL = void(0);
 var API_ESTIMATE_URL = void(0);
 var API_ORDER_URL = void(0);
 
 var signing_mw = function(path, callback) {
-  return function(request) {
+  return function(sa_request) {
     var timestamp = signing.generateXDropoffDate().x_dropoff_date;
 
-    request.set('X-Dropoff-Date', timestamp);
+    sa_request.set('X-Dropoff-Date', timestamp);
 
-    var headers = request._header;
+    var headers = sa_request._header;
     var headers_size = headers ? Object.keys(headers).length : 0;
-    var req_header = request.header;
+    var req_header = sa_request.header;
     var req_header_size = req_header ? Object.keys(req_header).length : 0;
 
     if ((!headers || headers_size === 0) && req_header && req_header_size > 0) {
       headers = req_header;
     } else if (!headers || headers_size === 0) {
       headers = {};
-      headers['x-dropoff-date'] = request.get('X-Dropoff-Date');
-      headers.accept = request.get('Accept');
+      headers['x-dropoff-date'] = sa_request.get('X-Dropoff-Date');
+      headers.accept = sa_request.get('Accept');
     }
 
     var params = {
-      method : request.method,
+      method : sa_request.method,
       return_as_auth_header : true,
       public_key : public_key,
       private_key : private_key,
@@ -54,8 +52,8 @@ var signing_mw = function(path, callback) {
     if (typeof navigator !== 'undefined' && navigator.userAgent) {
       headers['user-agent'] = navigator.userAgent;
       params.signed_headers.push('user-agent');
-    } else if (request.get('user-agent')) {
-      headers['user-agent'] = request.get('user-agent');
+    } else if (sa_request.get('user-agent')) {
+      headers['user-agent'] = sa_request.get('user-agent');
       params.signed_headers.push('user-agent');
     }
 
@@ -65,8 +63,8 @@ var signing_mw = function(path, callback) {
     } else if (typeof document !== 'undefined' && document.location && document.location.host) {
       headers.host = document.location.host;
       params.signed_headers.push('host');
-    } else if (request.get('user-agent')) {
-      headers.host = request.get('host');
+    } else if (sa_request.get('user-agent')) {
+      headers.host = sa_request.get('host');
       params.signed_headers.push('host');
     }
 
@@ -80,13 +78,13 @@ var signing_mw = function(path, callback) {
         if (error) {
           callback(error);
         } else {
-          request.set('Authorization', data);
-          request.end(callback);
+          sa_request.set('Authorization', data);
+          sa_request.end(callback);
         }
       });
     }
 
-    return request;
+    return sa_request;
   };
 };
 
@@ -113,9 +111,9 @@ module.exports.configure = function(params) {
   var api_url = params.api_url;
 
   if (api_url.indexOf('/') === (api_url.length - 1)) {
-    api_url = api_url.substring(0, (api_url.length-1));
+    api_url = api_url.substring(0, (api_url.length - 1));
   }
-  API_INFO_URL = api_url + API_INFO_PATH;
+
   API_ESTIMATE_URL = api_url + API_ESTIMATE_PATH;
   API_ORDER_URL = api_url + API_ORDER_PATH;
   configured = true;
