@@ -140,7 +140,9 @@ module.exports.order.estimate = function(params, callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 };
@@ -159,7 +161,9 @@ module.exports.order.create = function(params, callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 };
@@ -177,7 +181,9 @@ module.exports.order.cancel = function(order_id, callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 };
@@ -192,7 +198,9 @@ var getOrders = function(callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 };
@@ -208,7 +216,9 @@ var getOrdersFrom = function(last_key, callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 };
@@ -227,7 +237,9 @@ var getOrder = function(order_id, callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 };
@@ -246,7 +258,9 @@ var startSimulation = function(market, callback) {
       } else if (response.status === 200 && response.body) {
         callback(void(0), response.body);
       } else {
-        callback(new Error('response.status is ' + response.status), response.body);
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
       }
     }));
 
