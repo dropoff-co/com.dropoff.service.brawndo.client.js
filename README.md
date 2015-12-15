@@ -441,4 +441,4 @@ The simulation will create an order, assign it to a simulation agent, and move t
 
 **You can only run a simulation once every fifteen minutes.**
 
-    brawndo.order.simulate('austin', function(error, result) {});
+    brawndo.order.simulate({ market : 'austin' }, function(error, result) {});
