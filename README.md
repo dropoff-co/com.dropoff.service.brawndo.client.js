@@ -12,6 +12,10 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
     - [Cancelling an Order](#cancel)
     - [Getting a Specific Order](#specific)
     - [Getting a Page of Order](#page)
+  + [Tips](#tips)  
+    - [Creating](#tip_create)
+    - [Deleting](#tip_delete)
+    - [Reading](#tip_read)
   + [Webhook Info](#webhook)
     - [Webhook Backoff Algorithm](#backoff)
     - [Webhook Events](#events)
@@ -331,6 +335,39 @@ Example response
         timestamp: '2015-03-09T18:42:15+00:00'
     }
 
+## Tips <a id="tips"></a>
+
+You can create, delete, and read tips for individual orders.  Please note that tips can only be created or deleted for orders that were delivered within the current billing period.  Tips are paid out to our agents and will appear as an order adjustment charge on your invoice after the current billing period has expired.  Tip amounts must not be zero or negative.  You are limited to one tip per order.
+
+### Creating a tip <a id="tip_create"></a>
+
+Tip creation requires two parameters, the order id **(order_id)** and the tip amount **(amount)**.
+
+	brawndo.order.tip.create({ order_id :'61AE-Ozd7-L12', amount : 4.44 }, function(error, data) {
+	});
+
+### Deleting a tip <a id="tip_delete"></a>
+
+Tip deletion only requires the order id **(order_id)**.
+
+	brawndo.order.tip.delete('61AE-Ozd7-L12', function(error, data) {
+	});
+
+### Reading a tip <a id="tip_read"></a>
+
+Tip reading only requires the order id **(order_id)**.
+
+	brawndo.order.tip.read('61AE-Ozd7-L12', function(error, data) {
+	});
+
+Example response:
+
+	{
+		amount: "4.44"
+		createdate: "2016-02-18T16:46:52+00:00"
+		description: "Tip added by Dropoff(Algis Woss)"
+		updatedate: "2016-02-18T16:46:52+00:00"
+	}
 
 ## Webhooks <a id="webhook"></a>
 

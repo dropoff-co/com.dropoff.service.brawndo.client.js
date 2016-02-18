@@ -126,8 +126,6 @@ module.exports.sign = function(params, callback) {
       resource = path.split('/')[1];
     }
 
-    console.log('Resource: ' + resource);
-
     if (resource) {
       cb(NO_ERROR, DONE);
     } else {

@@ -1,6 +1,6 @@
 {
   "name": "com.dropoff.service.brawndo.client",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "Brawndo Isomorphic Javascript Client",
   "main": "brawndo.js",
   "scripts": {
