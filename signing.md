@@ -49,28 +49,10 @@ GET\n
 In our case it is /order/efef1212abcd.  Make sure you add a new line character to it.
 
 ```
-GET\n/order/efef1212abcd\n
-```
-
-### 4.4) Add each query parameter to the body
-
-They should be added in alphabetical order of the query parameter names.  Each parameter is given it's own line.
-
-This section should be terminated with a new line.
-
-For example if our query is ?qpd=d&qpb=b&qpa=a&qpc=c the body looks like:
-
-```
-GET\n/order/efef1212abcd\nqpa=a&\nqpb=b&\nqpc=c&\nqpd=d\n\n
-```
-
-Note that even if there are no query parameters this section should be terminated with a new line.  For example:
-
-```
 GET\n/order/efef1212abcd\n\n
 ```
 
-### 4.5)  Write the headers to the body.
+### 4.4)  Write the headers to the body.
 
 When writing the headers, the name of the header should be in lower case.  Headers are added in alphabetical order of the header names.
 
@@ -105,10 +87,10 @@ Let's assume that we know that we will be sending these headers :
 The body would be:
 
 ```
-GET\n/order/efef1212abcd\nqpa=a&\nqpb=b&\nqpc=c&\nqpd=d\n\naccept:application/json\nconnection:keep-alive\nhost:example.brawndo.dropoff.com;user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9\n;x-dropoff-date:20160112T172134Z\n\n
+GET\n/order/efef1212abcd\n\naccept:application/json\nconnection:keep-alive\nhost:example.brawndo.dropoff.com;user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9\n;x-dropoff-date:20160112T172134Z\n\n
 ```
 
-### 4.6)  Write the header names to the body.
+### 4.5)  Write the header names to the body.
 
 Should be lowercase, in alphabetical order and separated with ';'
 
@@ -117,10 +99,10 @@ Should be terminated with a new line.
 The body would be:
 
 ```
-GET\n/order/efef1212abcd\nqpa=a&\nqpb=b&\nqpc=c&\nqpd=d\n\naccept:application/json\nconnection:keep-alive\nhost:example.brawndo.dropoff.com;user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9\n\naccept;connection;host;user-agent;x-dropoff-date\n
+GET\n/order/efef1212abcd\n\naccept:application/json\nconnection:keep-alive\nhost:example.brawndo.dropoff.com;user-agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9\n\naccept;connection;host;user-agent;x-dropoff-date\n
 ```
 
-### 4.7) Create the authorization header encoding key
+### 4.6) Create the authorization header encoding key
 
 This is the formula
 
@@ -129,13 +111,19 @@ This is the formula
 
 You should use SHA512 to do the encoding.
 
-### 4.8) HMAC encode the body string with the private_key
+### 4.7) HMAC encode the body string with the private_key
 
 You should use SHA512 to do the encoding.
 
 The result should be in the form of a hex string.
 
-### 4.9) Encode the string from 4.8 using the key from 4.7
+### 4.8) Create the final srting to encode
+
+This is the format:
+
+HMAC-SHA512\n<x-dropoff-date>\n<resource>\n<value from 4.7>
+
+### 4.9) Encode the string from 4.8 using the key from 4.6
 
 Should result in a hex string.
 
