@@ -1,4 +1,4 @@
 node_modules/**
-php/.idea/**
+clients/php/.idea/**
 signing.docx
 signing.pdf
