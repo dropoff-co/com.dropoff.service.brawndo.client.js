@@ -24,7 +24,7 @@ class Order
         $this->tip = new \Dropoff\Tip($utils);
     }
 
-    public function createOrder($order_data)
+    public function create($order_data)
     {
         $request = $this->utils->createSignedRequest('/order', 'order', \HTTP_Request2::METHOD_POST);
         $request->setHeader('Content-type: application/json; charset=utf-8');
@@ -32,19 +32,19 @@ class Order
         return $this->utils->sendRequest($request);
     }
 
-    public function getOrder($order_id)
+    public function read($order_id)
     {
         $request = $this->utils->createSignedRequest('/order/' . $order_id, 'order', \HTTP_Request2::METHOD_GET);
         return $this->utils->sendRequest($request);
     }
 
-    public function cancelOrder($order_id)
+    public function cancel($order_id)
     {
         $request = $this->utils->createSignedRequest('/order/' . $order_id . '/cancel', 'order', \HTTP_Request2::METHOD_POST);
         return $this->utils->sendRequest($request);
     }
 
-    public function getOrders($last_key_hash = NULL)
+    public function readPage($last_key_hash = NULL)
     {
         $query = NULL;
         if (!is_null($last_key_hash)) {

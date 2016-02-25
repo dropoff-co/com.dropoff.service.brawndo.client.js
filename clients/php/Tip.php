@@ -18,17 +18,17 @@ class Tip
         $this->utils = $utils;
     }
 
-    public function createTip($order_id, $amount) {
+    public function create($order_id, $amount) {
         $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip/'.$amount, 'order', \HTTP_Request2::METHOD_POST);
         return $this->utils->sendRequest($request);
     }
 
-    public function getTip($order_id) {
+    public function read($order_id) {
         $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_GET);
         return $this->utils->sendRequest($request);
     }
 
-    public function deleteTip($order_id) {
+    public function delete($order_id) {
         $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_DELETE);
         return $this->utils->sendRequest($request);
     }
