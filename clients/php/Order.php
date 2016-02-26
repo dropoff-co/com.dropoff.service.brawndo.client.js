@@ -44,15 +44,21 @@ class Order
         return $this->utils->sendRequest($request);
     }
 
-    public function readPage($last_key_hash = NULL)
+    public function readPage($last_key = NULL)
     {
         $query = NULL;
-        if (!is_null($last_key_hash)) {
+        if (!is_null($last_key)) {
             $query = array(
-                'last_key_hash' => $last_key_hash
+                'last_key' => $last_key
             );
         }
         $request = $this->utils->createSignedRequest('/order', 'order', \HTTP_Request2::METHOD_GET, $query);
+        return $this->utils->sendRequest($request);
+    }
+
+    public function simulate($market)
+    {
+        $request = $this->utils->createSignedRequest('/order/simulate/' . $market, 'order', \HTTP_Request2::METHOD_GET, $query);
         return $this->utils->sendRequest($request);
     }
 }
