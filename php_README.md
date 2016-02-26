@@ -2,9 +2,7 @@
 
 # com.dropoff.service.brawndo.client
 
-This is the 3rd party dropoff javascript client for creating and viewing orders.
-
-**For PHP documentation go [HERE](php_README.md "PHP")**
+This is the 3rd party dropoff php client for creating and viewing orders and adding tips.
 
 # Table of Contents
   + [Client Info](#client)
@@ -24,111 +22,88 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
 
 ## Using the client <a id="client"></a>
 
-This code should be identical in a browser (assuming you have browserified brawndo.js) or in nodejs.  Brawndo is access via a require call.
-
-    var brawndo = require('brawndo');
-
 ### Configuration <a id="configuration"></a>
 
-You will then have to configure the brawndo instance with the configure function.
+You will then have to configure the brawndo instance vi the constructor.
 
-    var configure_params = {};
-    configure_params.api_url = 'https://qa-brawndo.dropoff.com/v1';
-    configure_params.host = 'qa-brawndo.dropoff.com';
-    configure_params.public_key = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8';
+	$public_key = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8';
+	$private_key = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482';
+	$api_url = 'https://qa-brawndo.dropoff.com/v1';
+	$host = 'qa-brawndo.dropoff.com';
+	$brawndo = new \Dropoff\Brawndo($public_key, $private_key, $api_url, $host);
 
-    configure_params.private_key = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482';
-
-    // or .....
-
-    configure_params.hasher_url = 'https://myserver.com/sign';
-
+---
 * **api_url** - the url of the brawndo api.  This field is required.
 * **host** - the api host.  This field is required.
 * **public_key** - the public key of the user that will be using the client.  This field is required.
-* **private_key** - the private key of the user that will be using the client.  Can be substituted with **hasher_url**
-* **hasher_url** - the endpoint that can be called to generate the Authorization header on the server side in case you don't want the private key to be stored on your client.
+* **private_key** - the private key of the user that will be using the client.
 
-#### Implementing a hasher_url endpoint
-
-It's pretty straightforward if you are storing the user information on the server side.  This example will assume that the public and private keys are part of the session.
-
-    var brawndo = require('brawndo');
-
-    // ..... express setup .....
-
-    app.post('/do_sign', function(req, res) {
-        if (req.session && req.session.public_key && req.session.private_key) {
-            brawndo.configure({
-                api_url : 'https://qa-brawndo.dropoff.com/v1',
-                public_key : req.session.public_key,
-                private_key : req.session.private_key
-            });
-            var signature = brawndo.createHash(params);
-            res.status(200).json({ signature : signature });
-        } else {
-            res.status(401).end();
-        }
-    });
-
-The client will handle the rest.
+---
 
 ### Getting Pricing Estimates <a id="estimates"></a>
 
 Before you place an order you will first want to estimate the distance, eta, and cost for the delivery.  The client provides a **getEstimate** function for this operation.
 
-    var estimate_params = {};
-    estimate_params.origin = '117 San Jacinto Blvd, Austin, TX 78701, United States';  // required
-    estimate_params.destination = '800 Brazos Street, Austin, TX 78701, United States'; // required
-    estimate_params.utc_offset = '-06:00'; // required
-    estimate_params.ready_timestamp = 1425578400; // optional
+    $origin = '117 San Jacinto Blvd, Austin, TX 78701, United States';  // required
+    $destination = '800 Brazos Street, Austin, TX 78701, United States'; // required
+    $utc_offset = '-06:00'; // required
+    $ready_timestamp = 1425578400; // optional
 
+---
 * **origin** - the origin (aka the pickup location) of the order.  Required.
 * **destination** - the destination (aka the delivery location) of the order.  Required.
 * **utc_offset** - the utc offset of the timezone where the order is taking place.  Required.
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
 
-    brawndo.order.estimate(estimateParameters, function(error, estimate_data) {
-    });
+---
+	$result = $brawndo->estimate('800 Brazos St, Austin, TX 78701', '2517 Thornton Rd, Austin, TX 78704', date('P'), time());
 
-An example of a successful response will look like this:
+An example of a successful result will look like this:
 
-    {
-        success : true,
-        timestamp: '2015-03-05T14:51:14+00:00',
-        data : {
-            ETA: '243.1',
-            Distance: '0.62',
-            From: '78701',
-            To: '78701',
-            asap: {
-                Price: '19.00',
-                ETA: '243.1',
-                Distance: '0.62'
-            },
-            two_hr: {
-                Price: '17.00',
-                ETA: '243.1',
-                Distance: '0.62'
-            },
-            four_hr: {
-                Price: '15.00',
-                ETA: '243.1',
-                Distance: '0.62'
-            },
-            after_hr: {
-                Price: '21.00',
-                ETA: '243.1',
-                Distance: '0.62'
-            },
-            holiday: {
-                Price: '31.00',
-                ETA: '243.1',
-                Distance: '0.62'
-            }
-        }
-    }
+	array(3) {
+	  ["data"]=>
+	  array(6) {
+	    ["ETA"]=>
+	    string(6) "1023.1"
+	    ["Distance"]=>
+	    string(4) "3.79"
+	    ["asap"]=>
+	    array(3) {
+	      ["ETA"]=>
+	      string(6) "1023.1"
+	      ["Distance"]=>
+	      string(4) "3.79"
+	      ["Price"]=>
+	      string(4) "2.06"
+	    }
+	    ["two_hr"]=>
+	    array(3) {
+	      ["ETA"]=>
+	      string(6) "1023.1"
+	      ["Distance"]=>
+	      string(4) "3.79"
+	      ["Price"]=>
+	      string(5) "17.56"
+	    }
+	    ["four_hr"]=>
+	    array(3) {
+	      ["ETA"]=>
+	      string(6) "1023.1"
+	      ["Distance"]=>
+	      string(4) "3.79"
+	      ["Price"]=>
+	      string(5) "15.96"
+	    }
+	    ["service_type"]=>
+	    string(8) "standard"
+	  }
+	  ["success"]=>
+	  bool(true)
+	  ["timestamp"]=>
+	  string(25) "2016-02-26T14:05:25+00:00"
+	}
 
+---
 * **data** - contain the pricing information for the allowed delivery window based on the given ready time, so you will not always see every option.
 * **Distance** - the distance from the origin to the destination.
 * **ETA** - the estimated time (in seconds) it will take to go from the origin to the destination.
@@ -140,6 +115,7 @@ An example of a successful response will look like this:
 * **after_hr** - the pricing for an order that needs to delivered on a weekend or after 5:30PM on a weekday.
 * **holiday** - the pricing for an order that needs to delivered on a holiday.
 
+---
 ### Placing an order <a id="placing"></a>
 
 Given a successful estimate call, and a window that you like, then the order can be placed.  An order requires origin information, destination information, and specifics about the order.
@@ -148,36 +124,37 @@ Given a successful estimate call, and a window that you like, then the order can
 
 The origin and destination contain information regarding the addresses in the order.
 
-    var origin = {
-        address_line_1 : '117 San Jacinto Blvd',  // required
-        company_name : 'Gus\'s Fried Chicken',    // required
-        first_name : 'Napoleon',                  // required
-        last_name : 'Bonner',                     // required
-        phone : '5124744877',                     // required
-        email : 'orders@gussfriedchicken.com',    // required
-        city : 'Austin',                          // required
-        state : 'TX',                             // required
-        zip : '78701',                            // required
-        lat : '30.263706',                        // required
-        lng : '-97.741703',                       // required
-        remarks : 'Be nice to napoleon'           // optional
-    };
+	$destination = array(
+	    'company_name' => 'Dropoff PHP Destination',     // required
+	    'email' => 'awoss+phpd@dropoff.com',             // required
+	    'phone' => '5555554444',                         // required
+	    'first_name' => 'Del',                           // required
+	    'last_name' => 'Fitzgitibit',                    // required
+	    'address_line_1' => '800 Brazos Street',         // required
+	    'address_line_2' => '250',                       // optional
+	    'city' => 'Austin',                              // required
+	    'state' => 'TX',                                 // required
+	    'zip' => '78701',                                // required
+	    'lat' => 30.269967,                              // required
+		'lng' => -97.740838                              // required
+	);
 
-    var destination = {
-        address_line_1 : '800 Brazos Street',     // required
-        address_line_2 : '250',                   // optional
-        company_name : 'Dropoff Inc.',            // required
-        first_name : 'Algis',                     // required
-        last_name : 'Woss',                       // required
-        phone : '8444376763',                     // required
-        email : 'deliveries@dropoff.com',         // required
-        city : 'Austin',                          // required
-        state : 'TX',                             // required
-        zip : '78701',                            // required
-        lat : '30.269967',                        // required
-        lng : '-97.740838'                        // required
-    };
+	$origin = array(
+	    'company_name' => 'Dropoff PHP Destination',     // required
+	    'email' => 'awoss+gus@dropoff.com',              // required
+	    'phone' => '5124744877',                         // required
+	    'first_name' => 'Napoleon',                      // required
+	    'last_name' => 'Bonner',                         // required
+	    'address_line_1' => '117 San Jacinto Blvd',      // required
+	    'city' => 'Austin',                              // required
+	    'state' => 'TX',                                 // required
+	    'zip' => '78701',                                // required
+	    'lat' => 30.263706,                              // required
+	    'lng' => -97.741703,                             // required
+	    'remarks' => 'Be nice to napoleon'               // optional
+	);
 
+---
 * **address_line_1** - the street information for the origin or destination.  Required.
 * **address_line_2** - additional information for the address for the origin or destination (ie suite number).  Optional.
 * **company_name** - the name of the business for the origin or destination.  Required.
@@ -192,22 +169,25 @@ The origin and destination contain information regarding the addresses in the or
 * **lng** -  the longitude for the origin or destination.  Required.
 * **remarks** -  additional instructions for the origin or destination.  Optional.
 
+---
+
 #### Order details data.
 
 The details contain attributes about the order
 
-    var details = {
-        quantity : 1,                   // required
-        weight : 5,                     // required
-        eta : void(0),                  // required
-        distance : void(0),             // required
-        price : void(0),                // required
-        ready_date : 1425578400,        // required
-        type : void(0),                 // required
-        reference_name : void(0),       // optional
-        reference_code : void(0)        // optional
-    };
+	$details = array(
+	    'quantity' => 1,                         // required
+	    'weight' => 5,                           // required
+	    'eta' => '448.5',                        // required
+	    'distance' => '0.64',                    // required
+	    'price' => '13.99',                      // required
+	    'ready_date' => time(),                  // required
+	    'type' => 'two_hr',                      // required
+	    'reference_name' => 'Reference Name',    // optional
+	    'reference_code' => 'Reference Code'     // optional
+	);
 
+---
 * **quantity** - the number of packages in the order. Required.
 * **weight** - the weight of the packages in the order. Required.
 * **eta** - the eta from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
@@ -218,20 +198,22 @@ The details contain attributes about the order
 * **reference_name** - a field for your internal referencing. Optional.
 * **reference_code** - a field for your internal referencing. Optional.
 
+---
 Once this data is created, you can create the order.
 
-    brawndo.order.create({
-        origin : origin,
-        destination : destination,
-        details : details
-    }, function(error, data) {
-    });
+	$new_order = array(
+	    'origin' => $origin,
+	    'destination' => $destination,
+	    'details' => $details
+	);
 
-The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
+	$result = $brawndo->order->create($new_order);
+
+The data in the return value will contain the id of the new order as well as the url where you can track the order progress.
 
 
 ### Cancelling an order <a id="cancel"></a>
-    brawndo.order.cancel(order_id, function(error, data) {});
+    $result = $brawndo->order->cancel(order_id);
     
 * **order_id** - the id of the order to cancel.
 
@@ -245,97 +227,165 @@ An order can be cancelled in these situations
     
 ### Getting a specific order <a id="specific"></a>
 
-    brawndo.order.read({order_id : 'zzzz-zzzz-zzz'}, function(error, data) {
-    });
+    $result = $brawndo->order->read('c969c2a46eb5bc7d007ddc0e10187116');
 
 Example response
 
-    {
-         data: {
-             destination: {
-                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
-                 short_id: '06ex-r3zV-BMb',
-                 createdate: 1425653646,
-                 updatedate: 1425653646,
-                 order_status_code: 0,
-                 company_name: 'Dropoff Inc.',
-                 first_name: 'Algis',
-                 last_name: 'Woss',
-                 address_line_1: '800 Brazos Street',
-                 address_line_2: '250',
-                 city: 'Austin',
-                 state: 'TX',
-                 zip: '78701',
-                 phone_number: '8444376763',
-                 email_address: 'deliveries@dropoff.com',
-                 lng: -97.740838,
-                 lat: 30.269967
-             },
-             details: {
-                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
-                 short_id: '06ex-r3zV-BMb',
-                 createdate: 1425653646,
-                 customer_name: 'Algis Woss',
-                 type: 'ASAP',
-                 market: 'austin',
-                 timezone: 'America/Chicago',
-                 price: '15.00',
-                 signed: 'false',
-                 distance: '0.62',
-                 order_status_code: 0,
-                 wait_time: 0,
-                 order_status_name: 'Submitted',
-                 pickupETA: 'TBD',
-                 deliveryETA: '243.1',
-                 signature_exists: 'NO',
-                 quantity: 1,
-                 weight: 5,
-                 readyforpickupdate: 1425578400,
-                 updatedate: 1425653646
-             },
-             origin: {
-                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
-                 short_id: '06ex-r3zV-BMb',
-                 createdate: 1425653646,
-                 updatedate: 1425653646,
-                 order_status_code: 0,
-                 company_name: 'Gus's Fried Chicken',
-                 first_name: 'Napoleon',
-                 last_name: 'Bonner',
-                 address_line_1: '117 San Jacinto Blvd',
-                 city: 'Austin',
-                 state: 'TX',
-                 zip: '78701',
-                 phone_number: '5124744877',
-                 email_address: 'orders@gussfriedchicken.com',
-                 lng: -97.741703,
-                 lat: 30.263706,
-                 market: 'austin',
-                 remarks: 'Be nice to napoleon'
-             }
-        },
-        success: true,
-        timestamp: '2015-03-09T18:42:15+00:00'
-    }
+	array(3) {
+	  ["data"]=>
+	  array(3) {
+	    ["destination"]=>
+	    array(16) {
+	      ["zip"]=>
+	      string(5) "78701"
+	      ["lng"]=>
+	      float(-97.740838)
+	      ["city"]=>
+	      string(6) "Austin"
+	      ["last_name"]=>
+	      string(7) "Bobobob"
+	      ["createdate"]=>
+	      int(1455807688)
+	      ["email_address"]=>
+	      string(22) "deliveries@dropoff.com"
+	      ["updatedate"]=>
+	      int(1455807688)
+	      ["company_name"]=>
+	      string(12) "Dropoff Inc."
+	      ["address_line_1"]=>
+	      string(17) "800 Brazos Street"
+	      ["order_status_code"]=>
+	      int(0)
+	      ["phone_number"]=>
+	      string(10) "8444376763"
+	      ["address_line_2"]=>
+	      string(3) "250"
+	      ["state"]=>
+	      string(2) "TX"
+	      ["first_name"]=>
+	      string(5) "Algis"
+	      ["order_id"]=>
+	      string(13) "61AE-Ozd7-L12"
+	      ["lat"]=>
+	      float(30.269967)
+	    }
+	    ["details"]=>
+	    array(23) {
+	      ["distance"]=>
+	      string(4) "0.64"
+	      ["timezone"]=>
+	      string(15) "America/Chicago"
+	      ["time_frame"]=>
+	      string(6) "two_hr"
+	      ["simulation"]=>
+	      bool(false)
+	      ["createdate"]=>
+	      int(1455807688)
+	      ["type"]=>
+	      string(3) "2HR"
+	      ["utc_offset_minutes"]=>
+	      int(-360)
+	      ["updatedate"]=>
+	      int(1455807688)
+	      ["price"]=>
+	      string(5) "13.99"
+	      ["order_status_code"]=>
+	      int(0)
+	      ["quantity"]=>
+	      int(1)
+	      ["wait_time"]=>
+	      int(0)
+	      ["pickupETA"]=>
+	      string(3) "TBD"
+	      ["weight"]=>
+	      int(5)
+	      ["signed"]=>
+	      string(5) "false"
+	      ["readyforpickupdate"]=>
+	      int(1455893912)
+	      ["market"]=>
+	      string(6) "austin"
+	      ["service_type"]=>
+	      string(8) "standard"
+	      ["order_status_name"]=>
+	      string(9) "Submitted"
+	      ["signature_exists"]=>
+	      string(2) "NO"
+	      ["customer_name"]=>
+	      string(10) "Algis Woss"
+	      ["order_id"]=>
+	      string(13) "61AE-Ozd7-L12"
+	      ["deliveryETA"]=>
+	      string(5) "448.5"
+	    }
+	    ["origin"]=>
+	    array(17) {
+	      ["zip"]=>
+	      string(5) "78701"
+	      ["lng"]=>
+	      float(-97.741703)
+	      ["city"]=>
+	      string(6) "Austin"
+	      ["last_name"]=>
+	      string(6) "Bonner"
+	      ["createdate"]=>
+	      int(1455807688)
+	      ["market"]=>
+	      string(6) "austin"
+	      ["email_address"]=>
+	      string(27) "orders@gussfriedchicken.com"
+	      ["updatedate"]=>
+	      int(1455807688)
+	      ["company_name"]=>
+	      string(19) "Gus's Fried Chicken"
+	      ["address_line_1"]=>
+	      string(20) "117 San Jacinto Blvd"
+	      ["order_status_code"]=>
+	      int(0)
+	      ["phone_number"]=>
+	      string(10) "5124744877"
+	      ["state"]=>
+	      string(2) "TX"
+	      ["first_name"]=>
+	      string(8) "Napoleon"
+	      ["order_id"]=>
+	      string(13) "61AE-Ozd7-L12"
+	      ["remarks"]=>
+	      string(19) "Be nice to napoleon"
+	      ["lat"]=>
+	      float(30.263706)
+	    }
+	  }
+	  ["success"]=>
+	  bool(true)
+	  ["timestamp"]=>
+	  string(25) "2016-02-26T14:21:09+00:00"
+	}
+
 
 ### Getting a page order <a id="page"></a>
 
-    brawndo.order.read(function(error, data) {
-    });
-
-    brawndo.order.read({last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'}, function(error, data) {
-    });
+	$result = $brawndo->order->readPage();
+	$result = $brawndo->order->readPage('/YrqnazKwAui730mLfYT3eSEctmIAyzlEt80lkZJAJB4QyAhjH0ukYdJBI0w2Dcgl4/7k4pO6JTxP/U4hGXkH9kCVaqijcQU97FvxfABqjBSsJEt+Kh3igFeFgBZ3CV+JUn6ODMbhc9KXMnwEXx0fQ54D3lpY3jJHLh5xvFQmOM=');
 
 Example response
 
-    {
-        data: [ ... ],
-        count: 10,
-        total: 248,
-        last_key: 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas',
-        success: true,
-        timestamp: '2015-03-09T18:42:15+00:00'
-    }
+	array(7) {
+	  ["count"]=>
+	  int(10)
+	  ["data"]=>
+	  array(10) { ..... }
+	  ["total"]=>
+	  int(804)
+	  ["success"]=>
+	  bool(true)
+	  ["timestamp"]=>
+	  string(25) "2016-02-26T14:26:32+00:00"
+	  ["last_key"]=>
+	  string(172) "/YrqnazKwAui730mLfYT3eSEctmIAyzlEt80lkZJAJB4QyAhjH0ukYdJBI0w2Dcgl4/7k4pO6JTxP/U4hGXkH9kCVaqijcQU97FvxfABqjBSsJEt+Kh3igFeFgBZ3CV+JUn6ODMbhc9KXMnwEXx0fQ54D3lpY3jJHLh5xvFQmOM="
+	}
+
+Use **last_key** to get the subsequent page of orders.
 
 ## Tips <a id="tips"></a>
 
@@ -345,30 +395,31 @@ You can create, delete, and read tips for individual orders.  Please note that t
 
 Tip creation requires two parameters, the order id **(order_id)** and the tip amount **(amount)**.
 
-	brawndo.order.tip.create({ order_id :'61AE-Ozd7-L12', amount : 4.44 }, function(error, data) {
-	});
+	$result = $brawndo->order->tip->create('c969c2a46eb5bc7d007ddc0e10187116', 13.33);
 
 ### Deleting a tip <a id="tip_delete"></a>
 
 Tip deletion only requires the order id **(order_id)**.
 
-	brawndo.order.tip.delete('61AE-Ozd7-L12', function(error, data) {
-	});
+	$result = $brawndo->order->tip->delete('c969c2a46eb5bc7d007ddc0e10187116');
 
 ### Reading a tip <a id="tip_read"></a>
 
 Tip reading only requires the order id **(order_id)**.
 
-	brawndo.order.tip.read('61AE-Ozd7-L12', function(error, data) {
-	});
+	$result = $brawndo->order->tip->read('c969c2a46eb5bc7d007ddc0e10187116');
 
 Example response:
 
-	{
-		amount: "4.44"
-		createdate: "2016-02-18T16:46:52+00:00"
-		description: "Tip added by Dropoff(Algis Woss)"
-		updatedate: "2016-02-18T16:46:52+00:00"
+	array(4) {
+	  ["amount"]=>
+	  string(5) "13.33"
+	  ["description"]=>
+	  string(32) "Tip added by Dropoff(Algis Woss)"
+	  ["createdate"]=>
+	  string(25) "2016-02-26T14:33:15+00:00"
+	  ["updatedate"]=>
+	  string(25) "2016-02-26T14:33:15+00:00"
 	}
 
 ## Webhooks <a id="webhook"></a>
@@ -480,4 +531,4 @@ The simulation will create an order, assign it to a simulation agent, and move t
 
 **You can only run a simulation once every fifteen minutes.**
 
-    brawndo.order.simulate({ market : 'austin' }, function(error, result) {});
+    $result = $brawndo->$order->$simulate('austin');

@@ -119,7 +119,9 @@ module.exports.configure = function(params) {
   configured = true;
 };
 
-module.exports.order = {};
+module.exports.order = {
+  tip : {}
+};
 
 module.exports.order.estimate = function(params, callback) {
   if (!configured) {
@@ -176,6 +178,78 @@ module.exports.order.cancel = function(order_id, callback) {
     .post(API_ORDER_URL + '/' + order_id + '/cancel')
     .set('Accept', 'application/json')
     .use(signing_mw(API_ORDER_PATH + '/' + order_id + '/cancel', function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
+module.exports.order.tip.create = function(params, callback) {
+  if (!params.order_id || !params.amount) {
+    throw new Error('Call requires order_id and amount parameters');
+  }
+
+  var tip_url = API_ORDER_URL + '/' + params.order_id + '/tip/' + params.amount;
+  var tip_path = API_ORDER_PATH + '/' + params.order_id + '/tip/' + params.amount;
+
+  request
+    .post(tip_url)
+    .set('Accept', 'application/json')
+    .use(signing_mw(tip_path, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
+module.exports.order.tip.read = function(order_id, callback) {
+  if (!order_id) {
+    throw new Error('Call requires order_id');
+  }
+
+  var tip_url = API_ORDER_URL + '/' + order_id + '/tip';
+  var tip_path = API_ORDER_PATH + '/' + order_id + '/tip';
+  request
+    .get(tip_url)
+    .set('Accept', 'application/json')
+    .use(signing_mw(tip_path, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
+module.exports.order.tip.delete = function(order_id, callback) {
+  if (!order_id) {
+    throw new Error('Call requires order_id');
+  }
+
+  var tip_url = API_ORDER_URL + '/' + order_id + '/tip';
+  var tip_path = API_ORDER_PATH + '/' + order_id + '/tip';
+
+  var delete_func = request.del ? request.del : request.delete;
+
+  delete_func(tip_url)
+    .set('Accept', 'application/json')
+    .use(signing_mw(tip_path, function(error, response){
       if (error) {
         callback(error);
       } else if (response.status === 200 && response.body) {
