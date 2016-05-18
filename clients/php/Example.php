@@ -20,7 +20,7 @@ include 'Brawndo.php';
 //$new_destination = array(
 //    'company_name' => 'Dropoff PHP Destination',
 //    'email' => 'awoss+phpd@dropoff.com',
-//    'phone' => '5555554444',
+//    'phone_number' => '5555554444',
 //    'first_name' => 'Del',
 //    'last_name' => 'Fitzgitibit',
 //    'address_line_1' => '800 Brazos Street',
@@ -35,7 +35,7 @@ include 'Brawndo.php';
 //$new_origin = array(
 //    'company_name' => 'Dropoff PHP Destination',
 //    'email' => 'awoss+gus@dropoff.com',
-//    'phone' => '5124744877',
+//    'phone_number' => '5124744877',
 //    'first_name' => 'Napoleon',
 //    'last_name' => 'Bonner',
 //    'address_line_1' => '117 San Jacinto Blvd',

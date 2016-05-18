@@ -24,7 +24,7 @@ This is the 3rd party dropoff php client for creating and viewing orders and add
 
 ### Configuration <a id="configuration"></a>
 
-You will then have to configure the brawndo instance vi the constructor.
+You will have to configure the brawndo instance via the constructor.
 
 	$public_key = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8';
 	$private_key = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482';
@@ -160,7 +160,7 @@ The origin and destination contain information regarding the addresses in the or
 * **company_name** - the name of the business for the origin or destination.  Required.
 * **first_name** -  the first name of the contact at the origin or destination.  Required.
 * **last_name** - the last name of the contact at the origin or destination.  Required.
-* **phone_number** -  the contact number at the origin or destination.  Required.
+* **phone** -  the contact number at the origin or destination.  Required.
 * **email** -  the email address for the origin or destination.  Required.
 * **city** -  the city for the origin or destination.  Required.
 * **state** -  the state for the origin or destination.  Required.
@@ -194,7 +194,7 @@ The details contain attributes about the order
 * **distance** - the distance from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
 * **price** - the price for the order.  Should use the value retrieved in the getEstimate call.. Required.
 * **ready_date** - the unix timestamp (seconds) indicating when the order can be picked up. Can be up to 60 days into the future.  Required.
-* **type** - the order window.  Can be asap, two_hr, four_hr, after_hr, or holiday depending on the ready_date. Required.
+* **type** - the order window.  Can be asap, two_hr, or four_hr depending on the ready_date. Required.
 * **reference_name** - a field for your internal referencing. Optional.
 * **reference_code** - a field for your internal referencing. Optional.
 

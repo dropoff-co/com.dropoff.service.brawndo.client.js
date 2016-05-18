@@ -1,3 +1,9 @@
+clients/go/bin/**
+clients/go/pkg/**
+clients/php/DropoffLastMileClientPHP.zip
+clients/php/LastMileDDC.php
+clients/php/LastMileExample.php
+json/**
 node_modules/**
 clients/php/.idea/**
 signing.docx
