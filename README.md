@@ -5,6 +5,7 @@
 This is the 3rd party dropoff javascript client for creating and viewing orders.
 
 **For PHP documentation go [HERE](php_README.md "PHP")**
+**For GO documentation go [HERE](go_README.md "GO")**
 
 # Table of Contents
   + [Client Info](#client)
