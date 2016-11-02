@@ -119,6 +119,11 @@ module.exports.sign = function(params, callback) {
     if (path && path.indexOf('?') !== -1) {
       path = path.substring(0,path.indexOf('?'));
     }
+
+    if (path !== decodeURIComponent(path)) {
+      path = decodeURIComponent(path);
+    }
+
     doWrite((path ? path : '/'));
     doWrite('\n');
 
