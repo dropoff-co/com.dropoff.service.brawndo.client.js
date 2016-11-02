@@ -1,0 +1,44 @@
+{
+  "fail1": {
+    "success": false,
+    "timestamp": "2016-05-17T19:23:07Z",
+    "message": "No tip adjustment data"
+  },
+  "fail2": {
+    "success": false,
+    "timestamp": "2016-05-17T19:23:07Z",
+    "message": "No tip adjustment data"
+  },
+  "create": {
+    "message": "Insert Success",
+    "code": "Operation Completed",
+    "time": "2016-05-17T14:24:05-05:00",
+    "statusCode": 200,
+    "retryable": false,
+    "order_adjustment_id": "e2218fc0a8dcf3bdd18ae53ca8f2f49b",
+    "short_id": "Vk2q-pL6V-dRQ",
+    "object": {
+      "amount": "5.55",
+      "description": "Tip added by Dropoff(Algis Woss)",
+      "createdate": "2016-05-17T19:24:05Z",
+      "updatedate": "2016-05-17T19:24:05Z"
+    },
+    "success": true,
+    "timestamp": "2016-05-17T19:24:05Z"
+  },
+  "get": {
+    "amount": "5.55",
+    "description": "Tip added by Dropoff(Algis Woss)",
+    "createdate": "2016-05-17T19:24:05Z",
+    "updatedate": "2016-05-17T19:24:05Z"
+  },
+  "delete": {
+    "message": "Delete Success",
+    "code": "Operation Completed",
+    "time": "2016-05-17T14:24:05-05:00",
+    "statusCode": 200,
+    "retryable": false,
+    "success": true,
+    "timestamp": "2016-05-17T19:24:05Z"
+  }
+}
