@@ -117,11 +117,13 @@ You should use SHA512 to do the encoding.
 
 The result should be in the form of a hex string.
 
-### 4.8) Create the final srting to encode
+### 4.8) Create the final string to encode
 
 This is the format:
 
+```
 HMAC-SHA512\n<x-dropoff-date>\n<resource>\n<value from 4.7>
+```
 
 ### 4.9) Encode the string from 4.8 using the key from 4.6
 
@@ -135,7 +137,7 @@ Should be under Authorization header name
 The value should be in this format:
 
 ```
-Authorization: HMAC-SHA512 Credential=<public_key>,SignedHeaders=<value used in 4.6>,Signature=<hex string from 4.9>
+Authorization: HMAC-SHA512 Credential=<public_key>,SignedHeaders=<value used in 4.5>,Signature=<hex string from 4.9>
 ```
 
 ## 5) Send the request
