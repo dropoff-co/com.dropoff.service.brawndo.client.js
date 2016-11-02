@@ -1,0 +1,24 @@
+{
+  "data": {
+    "ETA": "1064.7",
+    "Distance": "3.51",
+    "asap": {
+      "ETA": "1064.7",
+      "Distance": "3.51",
+      "Price": "2.06"
+    },
+    "two_hr": {
+      "ETA": "1064.7",
+      "Distance": "3.51",
+      "Price": "17.56"
+    },
+    "four_hr": {
+      "ETA": "1064.7",
+      "Distance": "3.51",
+      "Price": "15.96"
+    },
+    "service_type": "standard"
+  },
+  "success": true,
+  "timestamp": "2016-05-17T15:20:06Z"
+}
