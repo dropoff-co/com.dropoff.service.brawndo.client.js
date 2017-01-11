@@ -9,8 +9,8 @@
 namespace Dropoff;
 
 require_once 'HTTP/Request2.php';
-include 'Utils.php';
-include 'Order.php';
+require_once 'Utils.php';
+require_once 'Order.php';
 
 use Utils;
 use Order;
