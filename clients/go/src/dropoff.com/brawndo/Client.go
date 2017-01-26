@@ -14,7 +14,34 @@ type Client struct {
 	Transport *Transport
 }
 
-func (b Client) Estimate(origin string, destination string, utc_offset int, ready_timestamp int64 ) (EstimateResponse, error) {
+func (b Client) Info() (InfoResponse, error) {
+	var ir InfoResponse
+	resp, err := b.Transport.MakeRequest("GET", "/info", "info", "", nil)
+
+	if (err != nil) {
+		return ir, err
+	}
+
+	err = json.Unmarshal([]byte(resp), &ir)
+
+	return ir, nil;
+}
+
+type EstimateRequest struct {
+	Origin		string
+	Destination	string
+	UTCOffset	int
+	ReadyTimestamp  int64
+	CompanyId	string
+}
+
+func (b Client) Estimate(req *EstimateRequest) (EstimateResponse, error) {
+	var origin = req.Origin;
+	var destination = req.Destination;
+	var ready_timestamp = req.ReadyTimestamp;
+	var utc_offset = req.UTCOffset;
+	var company_id = req.CompanyId;
+
 	var er EstimateResponse
 	query, err := url.ParseQuery("")
 
@@ -24,6 +51,10 @@ func (b Client) Estimate(origin string, destination string, utc_offset int, read
 
 	query.Add("origin", origin);
 	query.Add("destination", destination);
+
+	if (company_id != "") {
+		query.Add("company_id", company_id);
+	}
 
 	var utc_offset_string string
 
@@ -61,6 +92,10 @@ func (b Client) Estimate(origin string, destination string, utc_offset int, read
 
 func (b Client) CreateOrder(req *CreateOrderRequest) (CreateOrderResponse, error) {
 	var cor CreateOrderResponse
+	var query_string string
+	var company_id = req.CompanyId
+
+	req.CompanyId = ""
 
 	ba, err := json.Marshal(req)
 
@@ -68,7 +103,16 @@ func (b Client) CreateOrder(req *CreateOrderRequest) (CreateOrderResponse, error
 		return cor, err
 	}
 
-	resp, err := b.Transport.MakeRequest("POST", "/order", "order", "", ba)
+	if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return cor, err
+		}
+		query.Add("company_id", company_id)
+		query_string = "?" + query.Encode()
+	}
+
+	resp, err := b.Transport.MakeRequest("POST", "/order", "order", query_string, ba)
 
 	if (err != nil) {
 		return cor, err
@@ -83,9 +127,30 @@ func (b Client) CreateOrder(req *CreateOrderRequest) (CreateOrderResponse, error
 	return cor, nil;
 }
 
-func (b Client) GetOrder(order_id string) (GetOrderResponse, error) {
+type OrderRequest struct {
+	OrderId		string
+	LastKey		string
+	CompanyId	string
+}
+
+func (b Client) GetOrder(req *OrderRequest) (GetOrderResponse, error) {
 	var gor GetOrderResponse
-	resp, err := b.Transport.MakeRequest("GET", "/order/" + order_id, "order", "", nil)
+
+	var order_id = req.OrderId;
+	var company_id = req.CompanyId;
+
+	var query_string string
+
+	if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return gor, err
+		}
+		query.Add("company_id", company_id)
+		query_string = "?" + query.Encode()
+	}
+
+	resp, err := b.Transport.MakeRequest("GET", "/order/" + order_id, "order", query_string, nil)
 
 	if (err != nil) {
 		return gor, err
@@ -100,9 +165,11 @@ func (b Client) GetOrder(order_id string) (GetOrderResponse, error) {
 	return gor, nil;
 }
 
-func (b Client) GetOrderPage(last_key string) (GetOrdersResponse, error) {
+func (b Client) GetOrderPage(req *OrderRequest) (GetOrdersResponse, error) {
 	var gor GetOrdersResponse
 	var query_string string
+	var last_key = req.LastKey;
+	var company_id = req.CompanyId;
 
 	if (last_key != "") {
 		query, err := url.ParseQuery("")
@@ -110,6 +177,16 @@ func (b Client) GetOrderPage(last_key string) (GetOrdersResponse, error) {
 			return gor, err
 		}
 		query.Add("last_key", last_key)
+		if (company_id != "") {
+			query.Add("company_id", company_id)
+		}
+		query_string = "?" + query.Encode()
+	} else if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return gor, err
+		}
+		query.Add("company_id", company_id)
 		query_string = "?" + query.Encode()
 	}
 
@@ -128,10 +205,22 @@ func (b Client) GetOrderPage(last_key string) (GetOrdersResponse, error) {
 	return gor, nil;
 }
 
-func (b Client) CancelOrder(order_id string) (CancelOrderResponse, error) {
+func (b Client) CancelOrder(req *OrderRequest) (CancelOrderResponse, error) {
 	var cor CancelOrderResponse
+	var query_string string
+	var order_id = req.OrderId;
+	var company_id = req.CompanyId;
 
-	resp, err := b.Transport.MakeRequest("POST", "/order/" + order_id + "/cancel", "order", "", nil)
+	if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return cor, err
+		}
+		query.Add("company_id", company_id)
+		query_string = "?" + query.Encode()
+	}
+
+	resp, err := b.Transport.MakeRequest("POST", "/order/" + order_id + "/cancel", "order", query_string, nil)
 
 	if (err != nil) {
 		return cor, err
@@ -163,9 +252,32 @@ func (b Client) SimulateOrder(market string) (SimulateOrderResponse, error) {
 	return sor, nil;
 }
 
-func (b Client) CreateOrderTip(order_id, amount string) (TipResponse, error) {
+
+type OrderTipRequest struct {
+	OrderId		string
+	Amount		string
+	CompanyId	string
+}
+
+func (b Client) CreateOrderTip(req *OrderTipRequest) (TipResponse, error) {
 	var tr TipResponse
-	resp, err := b.Transport.MakeRequest("POST", "/order/" + order_id + "/tip/" + amount, "order", "", nil)
+
+	var query_string string
+
+	var order_id = req.OrderId;
+	var amount = req.Amount;
+	var company_id = req.CompanyId;
+
+	if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return tr, err
+		}
+		query.Add("company_id", company_id)
+		query_string = "?" + query.Encode()
+	}
+
+	resp, err := b.Transport.MakeRequest("POST", "/order/" + order_id + "/tip/" + amount, "order", query_string, nil)
 
 	if (err != nil) {
 		return tr, err
@@ -180,9 +292,23 @@ func (b Client) CreateOrderTip(order_id, amount string) (TipResponse, error) {
 	return tr, nil;
 }
 
-func (b Client) GetOrderTip(order_id string) (TipResponse, error) {
-	var tr TipResponse
-	resp, err := b.Transport.MakeRequest("GET", "/order/" + order_id + "/tip", "order", "", nil)
+func (b Client) GetOrderTip(req *OrderTipRequest) (GetTipResponse, error) {
+	var tr GetTipResponse
+
+	var query_string string
+	var order_id = req.OrderId;
+	var company_id = req.CompanyId;
+
+	if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return tr, err
+		}
+		query.Add("company_id", company_id)
+		query_string = "?" + query.Encode()
+	}
+
+	resp, err := b.Transport.MakeRequest("GET", "/order/" + order_id + "/tip", "order", query_string, nil)
 
 	if (err != nil) {
 		return tr, err
@@ -197,9 +323,23 @@ func (b Client) GetOrderTip(order_id string) (TipResponse, error) {
 	return tr, nil;
 }
 
-func (b Client) DeleteOrderTip(order_id string) (TipResponse, error) {
-	var tr TipResponse
-	resp, err := b.Transport.MakeRequest("DELETE", "/order/" + order_id + "/tip", "order", "", nil)
+func (b Client) DeleteOrderTip(req *OrderTipRequest) (DeleteTipResponse, error) {
+	var tr DeleteTipResponse
+
+	var query_string string
+	var order_id = req.OrderId;
+	var company_id = req.CompanyId;
+
+	if (company_id != "") {
+		query, err := url.ParseQuery("")
+		if (err != nil) {
+			return tr, err
+		}
+		query.Add("company_id", company_id)
+		query_string = "?" + query.Encode()
+	}
+
+	resp, err := b.Transport.MakeRequest("DELETE", "/order/" + order_id + "/tip", "order", query_string, nil)
 
 	if (err != nil) {
 		return tr, err

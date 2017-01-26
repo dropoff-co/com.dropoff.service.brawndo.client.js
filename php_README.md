@@ -7,6 +7,8 @@ This is the 3rd party dropoff php client for creating and viewing orders and add
 # Table of Contents
   + [Client Info](#client)
     - [Configuration](#configuration)
+    - [Getting Your Account Info](#client_info)
+    - [Enterprise Managed Clients](#managed_clients)
     - [Getting Pricing Estimates](#estimates)
     - [Placing an Order](#placing)
     - [Cancelling an Order](#cancel)
@@ -19,6 +21,8 @@ This is the 3rd party dropoff php client for creating and viewing orders and add
   + [Webhook Info](#webhook)
     - [Webhook Backoff Algorithm](#backoff)
     - [Webhook Events](#events)
+    - [Managed Client Events](#managed_client_events)
+  + [Order Simulation](#simulation)
 
 ## Using the client <a id="client"></a>
 
@@ -40,6 +44,198 @@ You will have to configure the brawndo instance via the constructor.
 
 ---
 
+### Getting Your Client Information <a id="client_info"></a>
+
+If you want to know your client id and name you can access this information via the info call.
+
+If you are an enterprise client user, then this call will return all of the accounts that you are allowed to manage with your current account.
+
+    $result = $brawndo->info();
+    
+A response will look like this:
+
+    array(3) {
+      ["success"]=>
+      bool(true)
+      ["timestamp"]=>
+      string(20) "2017-01-26T14:42:48Z"
+      ["data"]=>
+      array(3) {
+        ["user"]=>
+        array(3) {
+          ["first_name"]=>
+          string(6) "Global"
+          ["last_name"]=>
+          string(3) "Guy"
+          ["id"]=>
+          string(13) "1111111111110"
+        }
+        ["client"]=>
+        array(2) {
+          ["company_name"]=>
+          string(19) "EnterpriseCo Global"
+          ["id"]=>
+          string(13) "1111111111110"
+        }
+        ["managed_clients"]=>
+        array(4) {
+          ["level"]=>
+          int(0)
+          ["company_name"]=>
+          string(19) "EnterpriseCo Global"
+          ["id"]=>
+          string(13) "1111111111110"
+          ["children"]=>
+          array(2) {
+            [0]=>
+            array(4) {
+              ["company_name"]=>
+              string(19) "EnterpriseCo Europe"
+              ["level"]=>
+              int(1)
+              ["id"]=>
+              string(13) "1111111111112"
+              ["children"]=>
+              array(3) {
+                [0]=>
+                array(4) {
+                  ["company_name"]=>
+                  string(18) "EnterpriseCo Paris"
+                  ["level"]=>
+                  int(2)
+                  ["id"]=>
+                  string(13) "1111111111111"
+                  ["children"]=>
+                  array(0) {
+                  }
+                }
+                [1]=>
+                array(4) {
+                  ["company_name"]=>
+                  string(19) "EnterpriseCo London"
+                  ["level"]=>
+                  int(2)
+                  ["id"]=>
+                  string(13) "1111111111113"
+                  ["children"]=>
+                  array(0) {
+                  }
+                }
+                [2]=>
+                array(4) {
+                  ["company_name"]=>
+                  string(18) "EnterpriseCo Milan"
+                  ["level"]=>
+                  int(2)
+                  ["id"]=>
+                  string(13) "1111111111114"
+                  ["children"]=>
+                  array(0) {
+                  }
+                }
+              }
+            }
+            [2]=>
+            array(4) {
+              ["company_name"]=>
+              string(15) "EnterpriseCo NA"
+              ["level"]=>
+              int(1)
+              ["id"]=>
+              string(13) "1111111111115"
+              ["children"]=>
+              array(3) {
+                [0]=>
+                array(4) {
+                  ["company_name"]=>
+                  string(20) "EnterpriseCo Chicago"
+                  ["level"]=>
+                  int(2)
+                  ["id"]=>
+                  string(13) "1111111111116"
+                  ["children"]=>
+                  array(0) {
+                  }
+                }
+                [1]=>
+                array(4) {
+                  ["company_name"]=>
+                  string(21) "EnterpriseCo New York"
+                  ["level"]=>
+                  int(2)
+                  ["id"]=>
+                  string(13) "1111111111117"
+                  ["children"]=>
+                  array(0) {
+                  }
+                }
+                [2]=>
+                array(4) {
+                  ["company_name"]=>
+                  string(24) "EnterpriseCo Los Angeles"
+                  ["level"]=>
+                  int(2)
+                  ["id"]=>
+                  string(13) "1111111111118"
+                  ["children"]=>
+                  array(0) {
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+The main sections in data are user, client, and managed_clients.  
+
+The user info shows basic information about the Dropoff user that the used keys represent.
+
+The client info shows basic information about the Dropoff Client that the user belongs to who's keys are being used.
+
+The managed_clients info shows a hierarchical structure of all clients that can be managed by the user who's keys are being used.
+
+### Enterprise Managed Clients  <a id="managed_clients"></a>
+
+In the above info example you see that keys for a user in an enterprise client are being used.  It has clients that can be managed as it's descendants.
+
+The hierarchy looks something like this:
+
+
+        EnterpriseCo Global (1111111111110)
+        ├─ EnterpriseCo Europe (1111111111112)
+        │  ├─ EnterpriseCo Paris (1111111111111)
+        │  ├─ EnterpriseCo London (1111111111113)
+        │  └─ EnterpriseCo Milan (1111111111114)
+        └─ Nordstrom NA (1111111111115)
+           ├─ EnterpriseCo Chicago (1111111111116)
+           ├─ EnterpriseCo New York (1111111111117)
+           └─ EnterpriseCo Los Angeles (1111111111118)
+
+
+Let's say I was using keys for a user in **EnterpriseCo Europe**, then the returned hierarchy would be:
+
+        EnterpriseCo Europe (1111111111112)
+        ├─ EnterpriseCo Paris (1111111111111)
+        ├─ EnterpriseCo London (1111111111113)
+        └─ EnterpriseCo Milan (1111111111114)
+        
+Note that You can no longer see the **EnterpriseCo Global** ancestor and anything descending and including **EnterpriseCo NA**.
+
+
+So what does it mean to manage an enterprise client?  This means that you can:
+
+- Get estimates for that client.
+- Place an order for that client.
+- Cancel an order for that client.
+- View existing orders placed for that client.
+- Create, update, and delete tips for orders placed for that client.
+
+All you have to do is specify the id of the client that you want to act on.  So if wanted to place orders for **EnterpriseCo Paris** I would make sure to include that clients id: "1111111111111".
+
+The following api documentation will show how to do this.
+
 ### Getting Pricing Estimates <a id="estimates"></a>
 
 Before you place an order you will first want to estimate the distance, eta, and cost for the delivery.  The client provides a **getEstimate** function for this operation.
@@ -48,15 +244,16 @@ Before you place an order you will first want to estimate the distance, eta, and
     $destination = '800 Brazos Street, Austin, TX 78701, United States'; // required
     $utc_offset = '-06:00'; // required
     $ready_timestamp = 1425578400; // optional
+    $company_id = '1111111111111'; // optional
 
 ---
 * **origin** - the origin (aka the pickup location) of the order.  Required.
 * **destination** - the destination (aka the delivery location) of the order.  Required.
 * **utc_offset** - the utc offset of the timezone where the order is taking place.  Required.
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
-
+* **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's estimate you want here.  This is optional and only works for enterprise clients.
 ---
-	$result = $brawndo->estimate('800 Brazos St, Austin, TX 78701', '2517 Thornton Rd, Austin, TX 78704', date('P'), time());
+	$result = $brawndo->estimate('800 Brazos St, Austin, TX 78701', '2517 Thornton Rd, Austin, TX 78704', date('P'), time(), $company_id);
 
 An example of a successful result will look like this:
 
@@ -197,7 +394,6 @@ The details contain attributes about the order
 * **type** - the order window.  Can be asap, two_hr, or four_hr depending on the ready_date. Required.
 * **reference_name** - a field for your internal referencing. Optional.
 * **reference_code** - a field for your internal referencing. Optional.
-
 ---
 Once this data is created, you can create the order.
 
@@ -208,14 +404,36 @@ Once this data is created, you can create the order.
 	);
 
 	$result = $brawndo->order->create($new_order);
+	
+Note that if you want to create this order on behalf of a managed client as an enterprise client user you will need to specify the company_id.
+
+	$new_order = array(
+	    'origin' => $origin,
+	    'destination' => $destination,
+	    'details' => $details,
+	    'company_id' => $company_id
+	);
+
+	$result = $brawndo->order->create($new_order);
 
 The data in the return value will contain the id of the new order as well as the url where you can track the order progress.
 
 
 ### Cancelling an order <a id="cancel"></a>
-    $result = $brawndo->order->cancel(order_id);
+
+    //Cancel an order created for the client that your keys represent
+    $order_id = '12345fedcba67890abcdef';
+    $result = $brawndo->order->cancel($order_id);
+
+    //Cancel an order created for a managed client that is a descendant of your enterprise client that your keys represent
+    $order_id = '123321abcdeffedcba6789';
+    $company_id = '1111111111111';
+    $result = $brawndo->order->cancel($order_id, $company_id);
     
+---
 * **order_id** - the id of the order to cancel.
+* **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to cancel an order for. This is optional and only works for enterprise clients.
+---
 
 An order can be cancelled in these situations
 
@@ -227,7 +445,19 @@ An order can be cancelled in these situations
     
 ### Getting a specific order <a id="specific"></a>
 
-    $result = $brawndo->order->read('c969c2a46eb5bc7d007ddc0e10187116');
+    //Read an order created for the client that your keys represent
+    $order_id = '12345fedcba67890abcdef';
+    $result = $brawndo->order->read($order_id);
+
+    //Read an order created for a managed client that is a descendant of your enterprise client that your keys represent
+    $order_id = '123321abcdeffedcba6789';
+    $company_id = '1111111111111';
+    $result = $brawndo->order->read($order_id, $company_id);
+
+---
+* **order_id** - the id of the order to read.
+* **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's order you would like to read. This is optional and only works for enterprise clients.
+---
 
 Example response
 
@@ -365,8 +595,27 @@ Example response
 
 ### Getting a page order <a id="page"></a>
 
-	$result = $brawndo->order->readPage();
-	$result = $brawndo->order->readPage('/YrqnazKwAui730mLfYT3eSEctmIAyzlEt80lkZJAJB4QyAhjH0ukYdJBI0w2Dcgl4/7k4pO6JTxP/U4hGXkH9kCVaqijcQU97FvxfABqjBSsJEt+Kh3igFeFgBZ3CV+JUn6ODMbhc9KXMnwEXx0fQ54D3lpY3jJHLh5xvFQmOM=');
+    // Get the first page of orders for your client
+    $result = $brawndo->order->readPage();
+    
+    // Get the page of orders for your client following the given last key.
+    $last_key = 'adfsjlhksadfjklfdasjklfadsjklfadsjklafsdjhk'
+    $result = $brawndo->order->readPage($last_key);
+    
+    // Get the first page of orders for a managed client
+    $company_id = '1111111111111';
+    $result = $brawndo->order->readPage(NULL, $company_id);
+    
+    // Get the page of orders for a managed client following the given last key.
+    $last_key = 'adfsjlhksadfjklfdasjklfadsjklfadsjklafsdjhk'
+    $company_id = '1111111111111';
+    $result = $brawndo->order->readPage($last_key, $company_id);
+
+
+---
+* **last_key** - the id of the order to read.
+* **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's order pages you would like to read. This is optional and only works for enterprise clients.
+---
 
 Example response
 
@@ -395,19 +644,47 @@ You can create, delete, and read tips for individual orders.  Please note that t
 
 Tip creation requires two parameters, the order id **(order_id)** and the tip amount **(amount)**.
 
-	$result = $brawndo->order->tip->create('c969c2a46eb5bc7d007ddc0e10187116', 13.33);
+    $order_id = 'abcdef0987654321fedcba';
+    $amount = 13.33;
+    $result = $brawndo->order->tip->create($order_id, $amount);
 
+    $order_id = '1234567890abcdef54321';
+    $amount = 22.22;
+    $company_id = '1111111111111';
+    $result = $brawndo->order->tip->create($order_id, $amount, $company_id);
+
+---
+* **order_id** - the order id you want to add the tip to.
+* **amount** - the amount of the tip.
+* **company_id** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who who has an order you want to add a tip to. This is optional and only works for enterprise clients.
+---
+    
 ### Deleting a tip <a id="tip_delete"></a>
 
 Tip deletion only requires the order id **(order_id)**.
 
-	$result = $brawndo->order->tip->delete('c969c2a46eb5bc7d007ddc0e10187116');
+    $order_id = 'abcdef0987654321fedcba';
+    $result = $brawndo->order->tip->delete($order_id);
+
+    $order_id = '1234567890abcdef54321';
+    $company_id = '1111111111111';
+    $result = $brawndo->order->tip->delete($order_id, $company_id);
+
+---
+* **order_id** - the order id you want to delete the tip from.
+* **company_id** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who who has an order you want to remove a tip from. This is optional and only works for enterprise clients.
+---
 
 ### Reading a tip <a id="tip_read"></a>
 
 Tip reading only requires the order id **(order_id)**.
 
-	$result = $brawndo->order->tip->read('c969c2a46eb5bc7d007ddc0e10187116');
+    $order_id = 'abcdef0987654321fedcba';
+    $result = $brawndo->order->tip->read($order_id);
+
+    $order_id = '1234567890abcdef54321';
+    $company_id = '1111111111111';
+    $result = $brawndo->order->tip->read($order_id, $company_id);
 
 Example response:
 
@@ -421,6 +698,11 @@ Example response:
 	  ["updatedate"]=>
 	  string(25) "2016-02-26T14:33:15+00:00"
 	}
+
+---
+* **order_id** - the order id who's tip you want to see.
+* **company_id** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who who has an order who's tip you want to see. This is optional and only works for enterprise clients.
+---
 
 ## Webhooks <a id="webhook"></a>
 
@@ -522,8 +804,24 @@ This event is triggered when the location of an agent that is carrying out your 
 * **order_id** is the id of the order.
 * **agent_id** is the id of the agent that is carrying out your order.
 
+#### Managed Client Events<a id="managed_client_events"></a>
 
-#### Simulating an order
+If you have registered a webhook with an enterprise client that can manager other clients, then the webhook will also receive all events for any managed clients.
+
+So in our hierarchical [example](#managed_clients) at the start, if a webhook was registered for **EnterpriseCo Global**, it would receive all events for:
+
+- EnterpriseCo Global
+- EnterpriseCo Europe
+- EnterpriseCo Paris
+- EnterpriseCo London
+- EnterpriseCo Milan
+- EnterpriseCo NA
+- EnterpriseCo Chicago
+- EnterpriseCo New York
+- EnterpriseCo Los Angeles
+
+
+### Simulating an order<a id="simulation"></a>
 
 You can simulate an order via the brawndo api in order to test your webhooks.
 

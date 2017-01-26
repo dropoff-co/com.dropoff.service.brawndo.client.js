@@ -14,9 +14,11 @@ var hasher_url = void(0);
 var host = void(0);
 
 var API_ESTIMATE_PATH = '/estimate';
+var API_INFO_PATH = '/info';
 var API_ORDER_PATH = '/order';
 
 var API_ESTIMATE_URL = void(0);
+var API_INFO_URL = void(0);
 var API_ORDER_URL = void(0);
 
 var signing_mw = function(path, callback) {
@@ -115,8 +117,26 @@ module.exports.configure = function(params) {
   }
 
   API_ESTIMATE_URL = api_url + API_ESTIMATE_PATH;
+  API_INFO_URL = api_url + API_INFO_PATH;
   API_ORDER_URL = api_url + API_ORDER_PATH;
   configured = true;
+};
+
+module.exports.info = function(callback) {
+  request
+    .get(API_INFO_URL)
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_INFO_PATH, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
 };
 
 module.exports.order = {
@@ -153,8 +173,17 @@ module.exports.order.create = function(params, callback) {
   if (!configured) {
     throw new Error('Call configure before calling the api');
   }
-  request
-    .post(API_ORDER_URL)
+
+  var req = request.post(API_ORDER_URL);
+
+  if (params.company_id) {
+    req = req.query({
+      company_id : params.company_id
+    });
+    delete params.company_id;
+  }
+
+  req
     .set('Accept', 'application/json')
     .send(params)
     .use(signing_mw(API_ORDER_PATH, function(error, response){
@@ -170,12 +199,27 @@ module.exports.order.create = function(params, callback) {
     }));
 };
 
-module.exports.order.cancel = function(order_id, callback) {
+module.exports.order.cancel = function(params, callback) {
   if (!configured) {
     throw new Error('Call configure before calling the api');
   }
-  request
-    .post(API_ORDER_URL + '/' + order_id + '/cancel')
+  var order_id = params;
+
+  var req = void(0);
+
+  if (params.company_id && params.order_id) {
+    order_id = params.order_id;
+    req = request
+      .post(API_ORDER_URL + '/' + order_id + '/cancel')
+      .query({
+        company_id : params.company_id
+      });
+  } else {
+    req = request
+      .post(API_ORDER_URL + '/' + order_id + '/cancel');
+  }
+
+  req
     .set('Accept', 'application/json')
     .use(signing_mw(API_ORDER_PATH + '/' + order_id + '/cancel', function(error, response){
       if (error) {
@@ -198,8 +242,15 @@ module.exports.order.tip.create = function(params, callback) {
   var tip_url = API_ORDER_URL + '/' + params.order_id + '/tip/' + params.amount;
   var tip_path = API_ORDER_PATH + '/' + params.order_id + '/tip/' + params.amount;
 
-  request
-    .post(tip_url)
+  var req = request.post(tip_url);
+
+  if (params.company_id) {
+    req = req.query({
+      company_id : params.company_id
+    });
+  }
+
+  req
     .set('Accept', 'application/json')
     .use(signing_mw(tip_path, function(error, response){
       if (error) {
@@ -214,15 +265,29 @@ module.exports.order.tip.create = function(params, callback) {
     }));
 };
 
-module.exports.order.tip.read = function(order_id, callback) {
+module.exports.order.tip.read = function(params, callback) {
   if (!order_id) {
     throw new Error('Call requires order_id');
   }
 
+  var order_id = params;
+
+  if (params.order_id && params.company_id) {
+    order_id = params.order_id;
+  }
+
   var tip_url = API_ORDER_URL + '/' + order_id + '/tip';
   var tip_path = API_ORDER_PATH + '/' + order_id + '/tip';
-  request
-    .get(tip_url)
+
+  var req = request.get(tip_url);
+
+  if (params.company_id) {
+    req = req.query({
+      company_id : params.company_id
+    });
+  }
+
+  req
     .set('Accept', 'application/json')
     .use(signing_mw(tip_path, function(error, response){
       if (error) {
@@ -237,9 +302,15 @@ module.exports.order.tip.read = function(order_id, callback) {
     }));
 };
 
-module.exports.order.tip.delete = function(order_id, callback) {
+module.exports.order.tip.delete = function(params, callback) {
   if (!order_id) {
     throw new Error('Call requires order_id');
+  }
+
+  var order_id = params;
+
+  if (params.order_id && params.company_id) {
+    order_id = params.order_id;
   }
 
   var tip_url = API_ORDER_URL + '/' + order_id + '/tip';
@@ -247,7 +318,15 @@ module.exports.order.tip.delete = function(order_id, callback) {
 
   var delete_func = request.del ? request.del : request.delete;
 
-  delete_func(tip_url)
+  var req = delete_func(tip_url);
+
+  if (params.company_id) {
+    req = req.query({
+      company_id : params.company_id
+    });
+  }
+
+  req
     .set('Accept', 'application/json')
     .use(signing_mw(tip_path, function(error, response){
       if (error) {
@@ -262,9 +341,16 @@ module.exports.order.tip.delete = function(order_id, callback) {
     }));
 };
 
-var getOrders = function(callback) {
-  request
-    .get(API_ORDER_URL)
+var getOrders = function(company_id, callback) {
+  var req = request.get(API_ORDER_URL);
+
+  if (company_id) {
+    req.query({
+      company_id : company_id
+    });
+  }
+
+  req
     .set('Accept', 'application/json')
     .use(signing_mw(API_ORDER_PATH, function (error, response) {
       if (error) {
@@ -279,10 +365,16 @@ var getOrders = function(callback) {
     }));
 };
 
-var getOrdersFrom = function(last_key, callback) {
+var getOrdersFrom = function(last_key, company_id, callback) {
+  var query = { last_key : last_key };
+
+  if (company_id) {
+    query.company_id = company_id;
+  }
+
   request
     .get(API_ORDER_URL)
-    .query({ last_key : last_key })
+    .query(query)
     .set('Accept', 'application/json')
     .use(signing_mw(API_ORDER_PATH, function(error, response){
       if (error) {
@@ -297,13 +389,20 @@ var getOrdersFrom = function(last_key, callback) {
     }));
 };
 
-var getOrder = function(order_id, callback) {
+var getOrder = function(order_id, company_id, callback) {
   if (!order_id) {
     throw new Error('Call requires pickup and destination query parameters');
   }
 
-  request
-    .get(API_ORDER_URL + '/' + order_id)
+  var req = request.get(API_ORDER_URL + '/' + order_id);
+
+  if (company_id) {
+    req = req.query({
+      company_id : company_id
+    });
+  }
+
+  req
     .set('Accept', 'application/json')
     .use(signing_mw(API_ORDER_PATH + '/' + order_id, function(error, response) {
       if (error) {
@@ -346,11 +445,11 @@ module.exports.order.read = function(params, callback) {
     params = {};
   }
   if (params.order_id) {
-    getOrder(params.order_id, callback);
+    getOrder(params.order_id, params.company_id, callback);
   } else if (params.last_key) {
-    getOrdersFrom(params.last_key, callback);
+    getOrdersFrom(params.last_key, params.company_id, callback);
   } else {
-    getOrders(callback);
+    getOrders(params.company_id, callback);
   }
 };
 

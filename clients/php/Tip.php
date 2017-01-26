@@ -18,18 +18,42 @@ class Tip
         $this->utils = $utils;
     }
 
-    public function create($order_id, $amount) {
-        $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip/'.$amount, 'order', \HTTP_Request2::METHOD_POST);
+    public function create($order_id, $amount, $company_id = NULL) {
+        $request = NULL;
+        if (!is_null($company_id)) {
+            $query = array(
+                'company_id' => company_id
+            );
+            $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip/'.$amount, 'order', \HTTP_Request2::METHOD_POST, $query);
+        } else {
+            $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip/'.$amount, 'order', \HTTP_Request2::METHOD_POST);
+        }
         return $this->utils->sendRequest($request);
     }
 
-    public function read($order_id) {
-        $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_GET);
+    public function read($order_id, $company_id = NULL) {
+        $request = NULL;
+        if (!is_null($company_id)) {
+            $query = array(
+                'company_id' => company_id
+            );
+            $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_GET, $query);
+        } else {
+            $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_GET);
+        }
         return $this->utils->sendRequest($request);
     }
 
-    public function delete($order_id) {
-        $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_DELETE);
+    public function delete($order_id, $company_id = NULL) {
+        $request = NULL;
+        if (!is_null($company_id)) {
+            $query = array(
+                'company_id' => company_id
+            );
+            $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_DELETE, $query);
+        } else {
+            $request = $this->utils->createSignedRequest('/order/'.$order_id.'/tip', 'order', \HTTP_Request2::METHOD_DELETE);
+        }
         return $this->utils->sendRequest($request);
     }
 }

@@ -6,7 +6,9 @@ This is the 3rd party dropoff go client for creating and viewing orders and addi
 
 # Table of Contents
   + [Client Info](#client)
-    - [Intialization](#intialization)
+    - [Configuration](#intialization)
+    - [Getting Your Account Info](#client_info)
+    - [Enterprise Managed Accounts](#managed_clients)
     - [Getting Pricing Estimates](#estimates)
     - [Placing an Order](#placing)
     - [Cancelling an Order](#cancel)
@@ -19,12 +21,14 @@ This is the 3rd party dropoff go client for creating and viewing orders and addi
   + [Webhook Info](#webhook)
     - [Webhook Backoff Algorithm](#backoff)
     - [Webhook Events](#events)
+    - [Managed Client Events](#managed_client_events)
+  + [Order Simulation](#simulation)
 
 ## Using the client <a id="client"></a>
 
 ### Configuration <a id="initialization"></a>
 
-To initialize things you will have to create both a Brawndo Client and a Transport.  The client contains the methods that you can call while the transport will contain the information required to properly sign the requests.
+To configure things you will have to create both a Brawndo Client and a Transport.  The client contains the methods that you can call while the transport will contain the information required to properly sign the requests.
 
 	.....
 	
@@ -49,23 +53,118 @@ To initialize things you will have to create both a Brawndo Client and a Transpo
 
 ---
 
+### Getting Your Client Information <a id="client_info"></a>
+
+If you want to know your client id and name you can access this information via the info call.
+
+If you are an enterprise client user, then this call will return all of the accounts that you are allowed to manage with your current account.
+
+	res, err := brawndo.Info()
+    
+A successful response will be a struct in this format:
+
+  
+    type GetInfoManagedClient struct {
+      CompanyName     string
+      Id              string
+      Level           int
+      Children        []*GetInfoManagedClient
+    }
+    
+    type GetInfoClient struct {
+      CompanyName     string
+      Id              string
+    }
+    
+    type GetInfoUser struct {
+      FirstName       string
+      LastName        string
+      Id              string
+    }
+    
+    type InfoResponseData struct {
+      User            *GetInfoUser
+      Client          *GetInfoClient
+      ManagedClients  *GetInfoManagedClient
+    }
+    
+    type InfoResponse struct {  // The response
+      Data            *InfoResponseData
+    }
+    
+    
+The main sections in Data are User, Client, and ManagedClients.  
+
+The User info shows basic information about the Dropoff user that the used keys represent.
+
+The Client info shows basic information about the Dropoff Client that the user belongs to who's keys are being used.
+
+The ManagedClients info shows a hierarchical structure of all clients that can be managed by the user who's keys are being used.
+
+### Enterprise Managed Clients  <a id="managed_clients"></a>
+
+In the above info example you see that keys for a user in an enterprise client are being used.  It has clients that can be managed as it's descendants.
+
+The hierarchy could look something like this:
+
+
+        EnterpriseCo Global (1111111111110)
+        ├─ EnterpriseCo Europe (1111111111112)
+        │  ├─ EnterpriseCo Paris (1111111111111)
+        │  ├─ EnterpriseCo London (1111111111113)
+        │  └─ EnterpriseCo Milan (1111111111114)
+        └─ Nordstrom NA (1111111111115)
+           ├─ EnterpriseCo Chicago (1111111111116)
+           ├─ EnterpriseCo New York (1111111111117)
+           └─ EnterpriseCo Los Angeles (1111111111118)
+
+
+Let's say I was using keys for a user in **EnterpriseCo Europe**, then the returned hierarchy would be:
+
+        EnterpriseCo Europe (1111111111112)
+        ├─ EnterpriseCo Paris (1111111111111)
+        ├─ EnterpriseCo London (1111111111113)
+        └─ EnterpriseCo Milan (1111111111114)
+        
+Note that You can no longer see the **EnterpriseCo Global** ancestor and anything descending and including **EnterpriseCo NA**.
+
+
+So what does it mean to manage an enterprise client?  This means that you can:
+
+- Get estimates for that client.
+- Place an order for that client.
+- Cancel an order for that client.
+- View existing orders placed for that client.
+- Create, update, and delete tips for orders placed for that client.
+
+All you have to do is specify the id of the client that you want to act on.  So if wanted to place orders for **EnterpriseCo Paris** I would make sure to include that clients id: "1111111111111".
+
+The following api documentation will show how to do this.
+
+
 ### Getting Pricing Estimates <a id="estimates"></a>
 
 Before you place an order you will first want to estimate the distance, eta, and cost for the delivery.  The client provides a **getEstimate** function for this operation.
 
-	_, o := time.Now().Zone();
-	origin := "2517 Thornton Rd, Austin, TX 78704"
-	destination := "800 Brazos St, Austin, TX 78704"
-	ready := time.Now().Unix() + 7200 // Two Hours from now
+	var req brawndo.EstimateRequest
+
+	_, zone := time.Now().Zone()
+
+	req.Origin = "2517 Thornton Rd, Austin, TX 78704"
+	req.Destination = "800 Brazos St, Austin, TX 78704"
+	req.UTCOffset = zone
+	req.ReadyTimestamp = -1
+	req.CompanyId = ""
 
 ---
-* **origin** - the origin (aka the pickup location) of the order.  Required.
-* **destination** - the destination (aka the delivery location) of the order.  Required.
-* **utc_offset** - the utc offset of the timezone where the order is taking place.  Value is in seconds. Required.
-* **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
-
+* **Origin** - the origin (aka the pickup location) of the order.  Required.
+* **Destination** - the destination (aka the delivery location) of the order.  Required.
+* **UTCOffset** - the utc offset of the timezone where the order is taking place.  Value is in seconds. Required.
+* **ReadyTimestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
+* **CompanyId** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's estimate you want here. This is optional and only works for enterprise clients.
 ---
-	res, err := b.Estimate(origin, destination, o, ready);
+
+	res, err := b.Estimate(origin, destination, o, ready)
 
 This is the structure of a successful response:
 
@@ -109,14 +208,14 @@ In order to create a new order you would instantiate a CreateOrderRequest struct
 		Details     *CreateOrderDetails
 		Origin      *CreateOrderAddress
 		Destination *CreateOrderAddress
+		CompanyId   string
 	}
 
 ---
-
 * **Details** - contains data specific to the order
 * **Origin** -  contains data specific to the origin (pickup location) of the order
 * **Destination** - contains data specific to the destination (dropoff location) of the order
-
+* **CompanyId** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to create an order for. This is optional and only works for enterprise clients.
 ---
 
 #### Origin and Destination data.
@@ -124,23 +223,22 @@ In order to create a new order you would instantiate a CreateOrderRequest struct
 The Origin and Destination contain information regarding the addresses in the order.  You would instantiate a CreateOrderAddress struct for each one
 
 	type CreateOrderAddress struct {
-		CompanyName 		string
-		Email 				string
-		Phone				string
-		FirstName 			string
-		LastName 			string
-		AddressLine1 		string
-		AddressLine2 		string
-		City	 			string
-		State 				string
-		Zip 				string
-		Remarks				string
-		Lat					float64
-		Lng					float64
+		CompanyName     string
+		Email           string
+		Phone           string
+		FirstName       string
+		LastName        string
+		AddressLine1    string
+		AddressLine2    string
+		City            string
+		State           string
+		Zip             string
+		Remarks         string
+		Lat             float64
+		Lng             float64
 	}
 
 ---
-
 * **CompanyName** - the name of the business for the origin or destination.  Required.
 * **Email** -  the email address for the origin or destination.  Required.
 * **Phone** -  the contact number at the origin or destination.  Required.
@@ -154,7 +252,6 @@ The Origin and Destination contain information regarding the addresses in the or
 * **Remarks** -  additional instructions for the origin or destination.  Optional.
 * **Lat** -  the latitude for the origin or destination.  Required.
 * **Lng** -  the longitude for the origin or destination.  Required.
-
 ---
 
 #### Order details data.
@@ -162,19 +259,18 @@ The Origin and Destination contain information regarding the addresses in the or
 The Details contain information about the order
 
 	type CreateOrderDetails struct {
-		Quantity		int64
-		Weight			int64
-		ETA				string
-		Distance		string
-		Price			string
-		ReadyDate		int64
-		Type			string
-		ReferenceCode	string
-		ReferenceName	string
+		Quantity      int64
+		Weight        int64
+		ETA           string
+		Distance      string
+		Price         string
+		ReadyDate     int64
+		Type          string
+		ReferenceCode string
+		ReferenceName string
 	}
 
 ---
-
 * **Quantity** - the number of packages in the order. Required.
 * **Weight** - the weight of the packages in the order. Required.
 * **ETA** - the eta from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
@@ -184,7 +280,6 @@ The Details contain information about the order
 * **Type** - the order window.  Can be asap, two_hr, four_hr depending on the ready_date. Required.
 * **ReferenceName** - a field for your internal referencing. Optional.
 * **ReferenceCode** - a field for your internal referencing. Optional.
-
 ---
 Once this data is created, you can create the order.
 
@@ -192,43 +287,43 @@ Once this data is created, you can create the order.
 	var cor_det brawndo.CreateOrderDetails
 	var cor_o, cor_d brawndo.CreateOrderAddress
 
-	cor_det.Quantity = 1;
-	cor_det.Weight = 5;
-	cor_det.ETA = "448.5";
-	cor_det.Distance = "0.64";
-	cor_det.Price = "13.99";
-	cor_det.ReadyDate = time.Now().Unix();
-	cor_det.Type = "two_hr";
-	cor_det.ReferenceCode = "reference code 0001";
-	cor_det.ReferenceName = "reference name";
+	cor_det.Quantity = 1
+	cor_det.Weight = 5
+	cor_det.ETA = "448.5"
+	cor_det.Distance = "0.64"
+	cor_det.Price = "13.99"
+	cor_det.ReadyDate = time.Now().Unix()
+	cor_det.Type = "two_hr"
+	cor_det.ReferenceCode = "reference code 0001"
+	cor_det.ReferenceName = "reference name"
 
-	cor_o.CompanyName = "Dropoff GO Origin";
-	cor_o.Email = "noreply+origin@dropoff.com";
-	cor_o.Phone = "5124744877";
-	cor_o.FirstName = "Napoleon";
-	cor_o.LastName = "Bonner";
-	cor_o.AddressLine1 = "117 San Jacinto Blvd";
-	//cor_o.AddressLine2 = "";
-	cor_o.City = "Austin";
-	cor_o.State = "TX";
-	cor_o.Zip = "78701";
-	cor_o.Lat = 30.263706;
-	cor_o.Lng = -97.741703;
-	cor_o.Remarks = "Be nice to napoleon";
+	cor_o.CompanyName = "Dropoff GO Origin"
+	cor_o.Email = "noreply+origin@dropoff.com"
+	cor_o.Phone = "5124744877"
+	cor_o.FirstName = "Napoleon"
+	cor_o.LastName = "Bonner"
+	cor_o.AddressLine1 = "117 San Jacinto Blvd"
+	//cor_o.AddressLine2 = ""
+	cor_o.City = "Austin"
+	cor_o.State = "TX"
+	cor_o.Zip = "78701"
+	cor_o.Lat = 30.263706
+	cor_o.Lng = -97.741703
+	cor_o.Remarks = "Be nice to napoleon"
 
-	cor_d.CompanyName = "Dropoff GO Destination";
-	cor_d.Email = "noreply+destination@dropoff.com";
-	cor_d.Phone = "5555554444";
-	cor_d.FirstName = "Del";
-	cor_d.LastName = "Fitzgitibit";
-	cor_d.AddressLine1 = "800 Brazos Street";
-	cor_d.AddressLine2 = "250";
-	cor_d.City = "Austin";
-	cor_d.State = "TX";
-	cor_d.Zip = "78701";
-	cor_d.Lat = 30.269967;
-	cor_d.Lng = -97.740838;
-	//cor_d.Remarks = "Be nice to napoleon";
+	cor_d.CompanyName = "Dropoff GO Destination"
+	cor_d.Email = "noreply+destination@dropoff.com"
+	cor_d.Phone = "5555554444"
+	cor_d.FirstName = "Del"
+	cor_d.LastName = "Fitzgitibit"
+	cor_d.AddressLine1 = "800 Brazos Street"
+	cor_d.AddressLine2 = "250"
+	cor_d.City = "Austin"
+	cor_d.State = "TX"
+	cor_d.Zip = "78701"
+	cor_d.Lat = 30.269967
+	cor_d.Lng = -97.740838
+	//cor_d.Remarks = "Optional remarks"
 
 	cor.Details = &cor_det
 	cor.Destination = &cor_d
@@ -239,35 +334,53 @@ Once this data is created, you can create the order.
 The data in the return value will contain the id of the new order as well as the url where you can track the order progress.
 
 	type CreateOrderData struct {
-		OrderId 		string
-		ShortId			string
-		URL	 			string
+		OrderId     string
+		ShortId     string
+		URL         string
 	}
 	
 	type CreateOrderResponse struct {  // this is returned
-		Message			string
-		Timestamp 		string
-		Success			bool
-		Data 			*CreateOrderData
+		Message     string
+		Timestamp   string
+		Success     bool
+		Data        *CreateOrderData
 	}
 
 
 ### Cancelling an order <a id="cancel"></a>
-    res, err := b.CancelOrder(OrderId);
-    
+	var req brawndo.OrderRequest
+
+	req.OrderId = "abcdef1234567890fedcba"
+	req.CompanyId = ""
+
+	res, err := b.CancelOrder(&req)
+
+---
 * **OrderId** - the id of the order to cancel.
+* **CompanyId** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to cancel an order for. This is optional and only works for enterprise clients.
+---
 
 An order can be cancelled in these situations
 
-* The order was placed less than **ten minutes** ago.
-* The order ready time is more than **one hour** away.
-* The order has not been picked up.
-* The order has not been cancelled.
+1. The order was placed less than **ten minutes** ago.
+2. The order ready time is more than **one hour** away.
+3. The order has not been picked up.
+4. The order has not been cancelled.
 
     
 ### Getting a specific order <a id="specific"></a>
 
-    res, err := b.GetOrder("23ff7ab8bfe0435a6e81775712e93e54")
+	var req brawndo.OrderRequest
+
+	req.OrderId = order_id
+	req.CompanyId = company_id
+
+	res, err := b.GetOrder(&req)
+
+---
+* **OrderId** - the id of the order to view.
+* **CompanyId** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to get an order for. This is optional and only works for enterprise clients.
+---
 
 This will return a GetOrderResponse struct
 
@@ -278,11 +391,9 @@ This will return a GetOrderResponse struct
 	}
 
 ---
-
 * **Data** - contains specifics about the order
 * **Success** - true if the order was retrieved, false otherwise.
 * **Timestamp** - the time that the opration completed
-
 ---
 
 The struct for GetOrderData looks like this:
@@ -294,39 +405,36 @@ The struct for GetOrderData looks like this:
 	}
 
 ---
-
 * **Details** - contains data specific to the order
 * **Origin** -  contains data specific to the origin (pickup location) of the order
 * **Destination** - contains data specific to the destination (dropoff location) of the order
-
 ---
 
 
 The struct for GetOrderDetails looks like this:
 
 	type GetOrderDetails struct {
-		OrderId				string
-		CustomerName		string
-		Price				string
-		Distance			string
-		Quantity			int64
-		Weight				int64
-		Market				string
-		ServiceType			string
-		TimeFrame			string
-		Timezone			string
-		UTCOffsetMinutes	int64
-		CreateDate			int64
-		UpdateDate			int64
-		ReadyForPickupDate	int64
-		OrderStatusCode		int64
-		OrderStatusName		string
-		ReferenceCode		string
-		ReferenceName		string
+		OrderId             string
+		CustomerName        string
+		Price               string
+		Distance            string
+		Quantity            int64
+		Weight              int64
+		Market              string
+		ServiceType         string
+		TimeFrame           string
+		Timezone            string
+		UTCOffsetMinutes    int64
+		CreateDate          int64
+		UpdateDate          int64
+		ReadyForPickupDate  int64
+		OrderStatusCode     int64
+		OrderStatusName     string
+		ReferenceCode       string
+		ReferenceName       string
 	}
 
 ---
-
 * **OrderId** - the id of the order
 * **CustomerName** - the name of the client that placed the order.
 * **Price** - the price for the order.
@@ -342,38 +450,36 @@ The struct for GetOrderDetails looks like this:
 * **UpdateDate** - the time the order was updated. unix timestamp.
 * **ReadyForPickupDate** - the time the order was ready to be picked up. unix timestamp.
 * **OrderStatusCode** -  the current status code for the order.  
-	* -1000 is cancelled. 
-	* 0 is submitted.  
-	* 1000 is assigned.  
-	* 2000 is pickedup.  
-	* 3000 is delivered.
+  * -1000 is cancelled. 
+  * 0 is submitted.  
+  * 1000 is assigned.  
+  * 2000 is pickedup.  
+  * 3000 is delivered.
 * **OrderStatusName** -  a string description of the status.
 * **ReferenceName** - a field for your internal referencing.
 * **ReferenceCode** - a field for your internal referencing.
-
 ---
 
 The struct for GetOrderAddress looks like this:
 
 	type GetOrderAddress struct {
-		CompanyName		string  `json:"company_name"`
-		FirstName		string  `json:"first_name"`
-		LastName		string  `json:"last_name"`
-		AddressLine1	string  `json:"address_line_1"`
-		AddressLine2	string  `json:"address_line_2"`
-		City			string  `json:"city"`
-		State			string  `json:"state"`
-		Zip				string  `json:"zip"`
-		Lng				float64 `json:"lat"`
-		Lat				float64 `json:"lng"`
-		Email			string  `json:"email_address"`
-		Phone			string  `json:"phone_number"`
-		CreateDate		int64   `json:"createdate"`
-		UpdateDate		int64   `json:"updatedate"`
+		CompanyName   string
+		FirstName     string
+		LastName      string
+		AddressLine1  string
+		AddressLine2  string
+		City          string
+		State         string
+		Zip           string
+		Lng           float64
+		Lat           float64
+		Email         string
+		Phone         string
+		CreateDate    int64
+		UpdateDate    int64
 	}
 
 ---
-
 * **CompanyName** - the name of the business for the address.
 * **FirstName** -  the first name of the contact at the address.
 * **LastName** - the last name of the contact at the address.
@@ -389,25 +495,45 @@ The struct for GetOrderAddress looks like this:
 * **CreateDate** -  the unix timestamp of creation.
 * **UpdateDate** -  the unix timestamp of the last update.
 * **Remarks** -  additional instructions for the address.
-
 ---
 
 
 
 ### Getting a page of orders <a id="page"></a>
 
-	res, err := b.GetOrderPage("")  //  Gets the first page of orders
-	res, err := b.GetOrderPage("/YrqnazKwAui730mLfYT3eSEctmIAyzlEt80lkZJAJB4QyAhjH0ukYdJBI0w2Dcgl4/7k4pO6JTxP/U4hGXkH9wWfKGaTMfo0y52Qq/Th0NDsxzV18o5dFZ0rQ41k8qCTzNXV0sKQx+zrNa3WRIHCpyvMTGt2NALKwgJBjrpIWs=")  //  Gets a page of orders starting after th last key
+    //  Get an the first order page for the client your keys represent
+	  var req brawndo.OrderRequest
+	  res, err := b.GetOrderPage(&req)
+
+    //  Get an the order page after the given key for the client your keys represent
+	  var req brawndo.OrderRequest
+	  req.LastKey = "1234567890abcdeffedcbakdjsaynzcvjkdsauiadfsjkfasdkjfsadkjadfshk"
+	  res, err := b.GetOrderPage(&req)
+
+    //  Get an the first order page for a managed client if you are an enterprise client
+	  var req brawndo.OrderRequest
+	  req.CompanyId = "1234567890abcdeffedcba"
+	  res, err := b.GetOrderPage(&req)
+
+    //  Get an the order page after the given key for a managed client if you are an enterprise client
+	  var req brawndo.OrderRequest
+	  req.CompanyId = "1234567890abcdeffedcba"
+	  req.LastKey = "1234567890abcdeffedcbakdjsaynzcvjkdsauiadfsjkfasdkjfsadkjadfshk"
+	  res, err := b.GetOrderPage(&req)
+---
+* **LastKey** - the key that marks the next page of orders. optional.
+* **CompanyId** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to get a page of orders for. This is optional and only works for enterprise clients.
+---
 
 This will return a GetOrdersResponse struct when successful
 
 	type GetOrdersResponse struct {
-		Total		int64
-		Count		int64
-		LastKey		string
-		Data      	[]*GetOrderData
-		Success   	bool
-		Timestamp 	string
+	  Total       int64
+	  Count       int64
+	  LastKey     string
+	  Data        []*GetOrderData
+	  Success     bool
+	  Timestamp   string
 	}
 
 Use **LastKey** to get the subsequent page of orders.
@@ -418,34 +544,84 @@ You can create, delete, and read tips for individual orders.  Please note that t
 
 ### Creating a tip <a id="tip_create"></a>
 
-Tip creation requires two parameters, the order id **(OrderId)** and the tip amount **(amount)**.
+Tip creation requires specifying an order id and an amount.
 
-	res, err := b.CreateOrderTip(OrderId, "5.55");
+	var req brawndo.OrderTipRequest
+	req.OrderId = "12345abcdef67890fedcba"
+	req.Amount = "7.50"
+	req.CompanyId = ""
+
+	res, err := b.CreateOrderTip(&req)
+	
+---
+* **OrderId** - the order id you want to add the tip to.
+* **Amount** - the amount of the tip.
+* **CompanyId** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who who has an order you want to add a tip to. This is optional and only works for enterprise clients.
+---
+
+Response Struct:
+
+    type TipResponseData struct {
+      Amount        string
+      Description   string
+      CreateDate    string
+      UpdateDate    string
+    }
+    
+    type TipResponse struct {
+      Message       string
+      Timestamp     string
+      Success       bool
+      Tip           *TipResponseData
+    }	
 
 ### Deleting a tip <a id="tip_delete"></a>
 
-Tip deletion only requires the order id **(OrderId)**.
+Tip deletion requires specifying an order id.
 
-	res, err := b.DeleteOrderTip(OrderId);
+	var req brawndo.OrderTipRequest
+	req.OrderId = "12345abcdef67890fedcba"
+	req.CompanyId = ""
+
+	res, err := b.DeleteOrderTip(&req)
+	
+
+Response Struct:
+
+    type DeleteTipResponse struct {
+      Message     string
+      Timestamp   string
+      Success     bool
+    }
+	
+---
+* **OrderId** - the order id you want to delete the tip from.
+* **CompanyId** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who who has an order you want to remove a tip from. This is optional and only works for enterprise clients.
+---
 
 ### Reading a tip <a id="tip_read"></a>
 
-Tip reading only requires the order id **(OrderId)**.
+Tip reading requires specifying an order id.
 
-	res, err := b.GetOrderTip(OrderId);
+	var req brawndo.OrderTipRequest
+	req.OrderId = "12345abcdef67890fedcba"
+	req.CompanyId = ""
 
-Example response:
+	res, err := b.GetOrderTip(&req)
+	
+---
+* **OrderId** - the order id who's tip you want to see.
+* **CompanyId** -  if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who who has an order who's tip you want to see. This is optional and only works for enterprise clients.
+---
 
-	array(4) {
-	  ["amount"]=>
-	  string(5) "13.33"
-	  ["description"]=>
-	  string(32) "Tip added by Dropoff(Algis Woss)"
-	  ["createdate"]=>
-	  string(25) "2016-02-26T14:33:15+00:00"
-	  ["updatedate"]=>
-	  string(25) "2016-02-26T14:33:15+00:00"
-	}
+Response Struct:
+
+    type GetTipResponse struct {
+      Amount        string
+      Description   string
+      CreateDate    string
+      UpdateDate    string
+    }
 
 ## Webhooks <a id="webhook"></a>
 
@@ -548,7 +724,24 @@ This event is triggered when the location of an agent that is carrying out your 
 * **agent_id** is the id of the agent that is carrying out your order.
 
 
-#### Simulating an order
+#### Managed Client Events<a id="managed_client_events"></a>
+
+If you have registered a webhook with an enterprise client that can manager other clients, then the webhook will also receive all events for any managed clients.
+
+So in our hierarchical [example](#managed_clients) at the start, if a webhook was registered for **EnterpriseCo Global**, it would receive all events for:
+
+- EnterpriseCo Global
+- EnterpriseCo Europe
+- EnterpriseCo Paris
+- EnterpriseCo London
+- EnterpriseCo Milan
+- EnterpriseCo NA
+- EnterpriseCo Chicago
+- EnterpriseCo New York
+- EnterpriseCo Los Angeles
+
+
+### Simulating an order<a id="simulation"></a>
 
 You can simulate an order via the brawndo api in order to test your webhooks.
 
@@ -556,7 +749,7 @@ The simulation will create an order, assign it to a simulation agent, and move t
 
 **You can only run a simulation once every fifteen minutes.**
 
-	res, err := b.SimulateOrder(market);
+	res, err := b.SimulateOrder(market)
 
 The struct response is:
 
@@ -568,10 +761,8 @@ The struct response is:
 	}
 	
 ---
-
 * **OrderId** - the id of the simulated order.
 * **OrderDetailsUrl** - the url of the order details page.
 * **Timestamp** - the timestamp that the simulation request was completed.
 * **Success** - true if the simulation was started.
-
 ---

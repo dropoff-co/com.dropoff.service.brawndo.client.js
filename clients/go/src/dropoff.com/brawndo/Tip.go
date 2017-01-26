@@ -8,14 +8,22 @@ type TipResponseData struct {
 }
 
 type TipResponse struct {
-	TipId			string 	`json:"order_adjustment_id,omitempty"`
-	ShortId			string 	`json:"short_id,omitempty"`
+	Message			string 	`json:"message"`
+	Timestamp 		string 	`json:"timestamp"`
+	Success			bool	`json:"success"`
+	Tip		        *TipResponseData `json:"object,omitempty"`
+}
+
+
+type DeleteTipResponse struct {
+	Message			string 	`json:"message"`
+	Timestamp 		string 	`json:"timestamp"`
+	Success			bool	`json:"success"`
+}
+
+type GetTipResponse struct {
 	Amount			string 	`json:"amount,omitempty"`
 	Description		string 	`json:"description,omitempty"`
 	CreateDate		string 	`json:"createdate,omitempty"`
 	UpdateDate 		string 	`json:"updatedate,omitempty"`
-	Message			string 	`json:"message"`
-	Timestamp 		string 	`json:"timestamp"`
-	Success			bool	`json:"success"`
-	Data		       *CreateOrderData `json:"object,omitempty"`
 }

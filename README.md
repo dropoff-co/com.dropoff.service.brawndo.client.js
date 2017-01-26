@@ -10,6 +10,8 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
 # Table of Contents
   + [Client Info](#client)
     - [Configuration](#configuration)
+    - [Getting Your Account Info](#client_info)
+    - [Enterprise Managed Clients](#managed_clients)
     - [Getting Pricing Estimates](#estimates)
     - [Placing an Order](#placing)
     - [Cancelling an Order](#cancel)
@@ -22,6 +24,8 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
   + [Webhook Info](#webhook)
     - [Webhook Backoff Algorithm](#backoff)
     - [Webhook Events](#events)
+    - [Managed Client Events](#managed_client_events)
+  + [Order Simulation](#simulation)
 
 ## Using the client <a id="client"></a>
 
@@ -74,6 +78,144 @@ It's pretty straightforward if you are storing the user information on the serve
 
 The client will handle the rest.
 
+### Getting Your Client Information <a id="client_info"></a>
+
+If you want to know your client id and name you can access this information via the info call.
+
+If you are an enterprise client user, then this call will return all of the accounts that you are allowed to manage with your current account.
+
+    brawndo.info(function(error, data) {
+      if (error) {
+        .....
+      } else {
+        .....
+      }
+    });
+    
+A response will look like this:
+
+    {
+      success: true
+      timestamp: "2017-01-25T16:51:36Z",
+      data: {
+        client: {
+          company_name: "EnterpriseCo Global",
+          id: "1111111111110"
+        },
+        user: {
+          first_name: "Algis",
+          last_name: "Woss",
+          id: "2222222222222"
+        },
+        managed_clients: {
+          level: 0,
+          company_name: "EnterpriseCo Global",
+          id: "1111111111110"
+          children : [
+            {
+              level: 1,
+              company_name: "EnterpriseCo Europe",
+              id: "1111111111112"
+              children : [
+                {
+                  level: 2,
+                  company_name: "EnterpriseCo Paris",
+                  id: "1111111111111"
+                  children : []
+                },
+                {
+                  level: 2,
+                  company_name: "EnterpriseCo London",
+                  id: "1111111111113"
+                  children : []
+                },
+                {
+                  level: 2,
+                  company_name: "EnterpriseCo Milan",
+                  id: "1111111111114"
+                  children : []
+                }
+              ]
+            },
+            {
+              level: 1,
+              company_name: "EnterpriseCo NA",
+              id: "1111111111115"
+              children : [
+                {
+                  level: 2,
+                  company_name: "EnterpriseCo Chicago",
+                  id: "1111111111116"
+                  children : []
+                },
+                {
+                  level: 2,
+                  company_name: "EnterpriseCo New York",
+                  id: "1111111111117"
+                  children : []
+                },
+                {
+                  level: 2,
+                  company_name: "EnterpriseCo Los Angeles",
+                  id: "1111111111118"
+                  children : []
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+    
+The main sections in data are user, client, and managed_clients.  
+
+The user info shows basic information about the Dropoff user that the used keys represent.
+
+The client info shows basic information about the Dropoff Client that the user belongs to who's keys are being used.
+
+The managed_clients info shows a hierarchical structure of all clients that can be managed by the user who's keys are being used.
+
+### Enterprise Managed Clients  <a id="managed_clients"></a>
+
+In the above info example you see that keys for a user in an enterprise client are being used.  It has clients that can be managed as it's descendants.
+
+The hierarchy looks something like this:
+
+
+        EnterpriseCo Global (1111111111110)
+        ├─ EnterpriseCo Europe (1111111111112)
+        │  ├─ EnterpriseCo Paris (1111111111111)
+        │  ├─ EnterpriseCo London (1111111111113)
+        │  └─ EnterpriseCo Milan (1111111111114)
+        └─ Nordstrom NA (1111111111115)
+           ├─ EnterpriseCo Chicago (1111111111116)
+           ├─ EnterpriseCo New York (1111111111117)
+           └─ EnterpriseCo Los Angeles (1111111111118)
+
+
+Let's say I was using keys for a user in **EnterpriseCo Europe**, then the returned hierarchy would be:
+
+        EnterpriseCo Europe (1111111111112)
+        ├─ EnterpriseCo Paris (1111111111111)
+        ├─ EnterpriseCo London (1111111111113)
+        └─ EnterpriseCo Milan (1111111111114)
+        
+Note that You can no longer see the **EnterpriseCo Global** ancestor and anything descending and including **EnterpriseCo NA**.
+
+
+So what does it mean to manage an enterprise client?  This means that you can:
+
+- Get estimates for that client.
+- Place an order for that client.
+- Cancel an order for that client.
+- View existing orders placed for that client.
+- Create, update, and delete tips for orders placed for that client.
+
+All you have to do is specify the id of the client that you want to act on.  So if wanted to place orders for **EnterpriseCo Paris** I would make sure to include that clients id: "1111111111111".
+
+The following api documentation will show how to do this.
+
+
 ### Getting Pricing Estimates <a id="estimates"></a>
 
 Before you place an order you will first want to estimate the distance, eta, and cost for the delivery.  The client provides a **getEstimate** function for this operation.
@@ -88,6 +230,7 @@ Before you place an order you will first want to estimate the distance, eta, and
 * **destination** - the destination (aka the delivery location) of the order.  Required.
 * **utc_offset** - the utc offset of the timezone where the order is taking place.  Required.
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
+* **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's estimate you want here.  This is optional and only works for enterprise clients.
 
     brawndo.order.estimate(estimateParameters, function(error, estimate_data) {
     });
@@ -228,13 +371,35 @@ Once this data is created, you can create the order.
     }, function(error, data) {
     });
 
+Note that if you want to create this order on behalf of a managed client as an enterprise client user you will need to specify the company_id.
+
+    brawndo.order.create({
+        origin : origin,
+        destination : destination,
+        details : details,
+        company_id : '1111111111111'
+    }, function(error, data) {
+    });
+
 The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
 
 
 ### Cancelling an order <a id="cancel"></a>
+
     brawndo.order.cancel(order_id, function(error, data) {});
+
+	
+If you are trying to cancel an order for a manage client order as an enterprise client user, include the company_id in the argument parameters
+
+	  brawndo.order.cancel({ 
+	    order_id : '61AE-Ozd7-L12',
+	    company_id : '1111111111111'
+	  }, 
+	  function(error, data) {
+	  });
     
 * **order_id** - the id of the order to cancel.
+* **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to cancel an order for. This is optional and only works for enterprise clients.
 
 An order can be cancelled in these situations
 
@@ -319,12 +484,30 @@ Example response
         timestamp: '2015-03-09T18:42:15+00:00'
     }
 
-### Getting a page order <a id="page"></a>
+### Getting a page of orders <a id="page"></a>
+
+Get the first page of orders
 
     brawndo.order.read(function(error, data) {
     });
 
+Get a page of orders after the last_key from a previous response
+
     brawndo.order.read({last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'}, function(error, data) {
+    });
+
+Get the first page of orders as an enterprise client user for a managed client
+
+    brawndo.order.read({company_id : '1111111111111'}, function(error, data) {
+    });
+
+Get a page of orders after the last_key from a previous response as an enterprise client user for a managed client
+
+    brawndo.order.read({
+      last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'
+      company_id : '1111111111111'
+    }, 
+    function(error, data) {
     });
 
 Example response
@@ -355,12 +538,30 @@ Tip deletion only requires the order id **(order_id)**.
 
 	brawndo.order.tip.delete('61AE-Ozd7-L12', function(error, data) {
 	});
+	
+If you are trying to delete a tip on a manage client order as an enterprise client user, include the company_id in the argument parameters
+
+	brawndo.order.tip.delete({ 
+	  order_id : '61AE-Ozd7-L12',
+	  company_id : '1111111111111'
+	}, 
+	function(error, data) {
+	});
 
 ### Reading a tip <a id="tip_read"></a>
 
 Tip reading only requires the order id **(order_id)**.
 
 	brawndo.order.tip.read('61AE-Ozd7-L12', function(error, data) {
+	});
+	
+If you are trying to read a tip on a manage client order as an enterprise client user, include the company_id in the argument parameters
+
+	brawndo.order.tip.read({ 
+	  order_id : '61AE-Ozd7-L12',
+	  company_id : '1111111111111'
+	}, 
+	function(error, data) {
 	});
 
 Example response:
@@ -473,7 +674,24 @@ This event is triggered when the location of an agent that is carrying out your 
 * **agent_id** is the id of the agent that is carrying out your order.
 
 
-#### Simulating an order
+#### Managed Client Events<a id="managed_client_events"></a>
+
+If you have registered a webhook with an enterprise client that can manager other clients, then the webhook will also receive all events for any managed clients.
+
+So in our hierarchical [example](#managed_clients) at the start, if a webhook was registered for **EnterpriseCo Global**, it would receive all events for:
+
+- EnterpriseCo Global
+- EnterpriseCo Europe
+- EnterpriseCo Paris
+- EnterpriseCo London
+- EnterpriseCo Milan
+- EnterpriseCo NA
+- EnterpriseCo Chicago
+- EnterpriseCo New York
+- EnterpriseCo Los Angeles
+
+
+### Simulating an order<a id="simulation"></a>
 
 You can simulate an order via the brawndo api in order to test your webhooks.
 
