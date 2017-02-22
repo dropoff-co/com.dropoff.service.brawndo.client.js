@@ -8,7 +8,13 @@
 
 include 'Brawndo.php';
 
-//$brawndo = new \Dropoff\Brawndo('user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8','7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482','http://localhost:9094/v1','localhost:9094');
+$public_key = "a7a3e9b9aa2c2cd045dbf9b62ff45b77e095b55373f2ad25afaf880675a4ecb3";
+$secret_key = "6b85176cc14c19f05f14d9c8470006699a87bba8d87982e2ce66cda195151a7a";
+
+$brawndo = new \Dropoff\Brawndo($public_key, $secret_key, 'http://localhost:9094/v1', 'localhost:9094');
+$result = $brawndo->info();
+var_dump($result);
+
 //$result = $brawndo->estimate('800 Brazos St, Austin, TX 78701', '2517 Thornton Rd, Austin, TX 78704', date('P'), time());
 //$result = $brawndo->order->read('c969c2a46eb5bc7d007ddc0e10187116');
 //$result = $brawndo->order->readPage();

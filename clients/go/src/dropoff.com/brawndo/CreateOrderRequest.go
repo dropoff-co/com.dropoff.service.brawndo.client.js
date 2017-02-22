@@ -22,7 +22,7 @@ type CreateOrderDetails struct {
 	ETA		string `json:"eta"`
 	Distance	string `json:"distance"`
 	Price		string `json:"price"`
-	ReadyDate	int64 `json:"ready_date"`
+	ReadyDate	int64  `json:"ready_date"`
 	Type		string `json:"type"`
 	ReferenceCode	string `json:"reference_code,omitempty"`
 	ReferenceName	string `json:"reference_name,omitempty"`
@@ -32,4 +32,5 @@ type CreateOrderRequest struct {
 	Details     *CreateOrderDetails `json:"details"`
 	Origin      *CreateOrderAddress `json:"origin"`
 	Destination *CreateOrderAddress `json:"destination"`
+	CompanyId   string 		`json:"company_id,omitempty"`
 }
