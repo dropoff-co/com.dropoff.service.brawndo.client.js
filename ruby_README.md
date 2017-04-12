@@ -2,11 +2,7 @@
 
 # com.dropoff.service.brawndo.client
 
-This is the 3rd party dropoff javascript client for creating and viewing orders.
-
-* **For PHP documentation go [HERE](php_README.md "PHP")**
-* **For GO documentation go [HERE](go_README.md "GO")**
-* **For Ruby documentation go [HERE](ruby_README.md "Javascript")**
+This is the 3rd party dropoff ruby client for creating and viewing orders.
 
 # Table of Contents
   + [Client Info](#client)
@@ -30,54 +26,26 @@ This is the 3rd party dropoff javascript client for creating and viewing orders.
 
 ## Using the client <a id="client"></a>
 
-This code should be identical in a browser (assuming you have browserified brawndo.js) or in nodejs.  Brawndo is access via a require call.
+Copy the ruby client into your application.  Let's assume you copied it into a folder called dropoff.  Brawndo is accessed via a require_relative call.
 
-    var brawndo = require('brawndo');
+    require_relative 'dropoff/brawndo'
 
 ### Configuration <a id="configuration"></a>
 
-You will then have to configure the brawndo instance with the configure function.
+You will then have to configure the brawndo instance via the constructor.
 
-    var configure_params = {};
-    configure_params.api_url = 'https://qa-brawndo.dropoff.com/v1';
-    configure_params.host = 'qa-brawndo.dropoff.com';
-    configure_params.public_key = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8';
-
-    configure_params.private_key = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482';
-
-    // or .....
-
-    configure_params.hasher_url = 'https://myserver.com/sign';
+    config = {}
+    config['public_key'] = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8'
+    config['private_key'] = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482'
+    config['api_url'] = 'https://qa-brawndo.dropoff.com/v1'
+    config['host'] = 'qa-brawndo.dropoff.com'
+    
+    brawndo = Brawndo.new(config)
 
 * **api_url** - the url of the brawndo api.  This field is required.
 * **host** - the api host.  This field is required.
 * **public_key** - the public key of the user that will be using the client.  This field is required.
-* **private_key** - the private key of the user that will be using the client.  Can be substituted with **hasher_url**
-* **hasher_url** - the endpoint that can be called to generate the Authorization header on the server side in case you don't want the private key to be stored on your client.
-
-#### Implementing a hasher_url endpoint
-
-It's pretty straightforward if you are storing the user information on the server side.  This example will assume that the public and private keys are part of the session.
-
-    var brawndo = require('brawndo');
-
-    // ..... express setup .....
-
-    app.post('/do_sign', function(req, res) {
-        if (req.session && req.session.public_key && req.session.private_key) {
-            brawndo.configure({
-                api_url : 'https://qa-brawndo.dropoff.com/v1',
-                public_key : req.session.public_key,
-                private_key : req.session.private_key
-            });
-            var signature = brawndo.createHash(params);
-            res.status(200).json({ signature : signature });
-        } else {
-            res.status(401).end();
-        }
-    });
-
-The client will handle the rest.
+* **private_key** - the private key of the user that will be using the client.  This field is required.
 
 ### Getting Your Client Information <a id="client_info"></a>
 
@@ -85,13 +53,7 @@ If you want to know your client id and name you can access this information via 
 
 If you are an enterprise client user, then this call will return all of the accounts that you are allowed to manage with your current account.
 
-    brawndo.info(function(error, data) {
-      if (error) {
-        .....
-      } else {
-        .....
-      }
-    });
+    info_data = brawndo.info()
     
 A response will look like this:
 
@@ -221,55 +183,54 @@ The following api documentation will show how to do this.
 
 Before you place an order you will first want to estimate the distance, eta, and cost for the delivery.  The client provides a **getEstimate** function for this operation.
 
-    var estimate_params = {};
-    estimate_params.origin = '117 San Jacinto Blvd, Austin, TX 78701, United States';  // required
-    estimate_params.destination = '800 Brazos Street, Austin, TX 78701, United States'; // required
-    estimate_params.utc_offset = '-06:00'; // required
-    estimate_params.ready_timestamp = 1425578400; // optional
-
+    estimate_params = {}
+    estimate_params['origin'] = '4729 Burnet Rd, Austin, TX 78756'        #required
+    estimate_params['destination'] = '2517 Thornton Rd, Austin, TX 78704' #required
+    estimate_params['utc_offset'] = Time.now.utc_offset                   #required
+    estimate_params['ready_timestamp'] = Time.now.to_i                    #optional
+    
 * **origin** - the origin (aka the pickup location) of the order.  Required.
 * **destination** - the destination (aka the delivery location) of the order.  Required.
 * **utc_offset** - the utc offset of the timezone where the order is taking place.  Required.
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
 * **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's estimate you want here.  This is optional and only works for enterprise clients.
 
-    brawndo.order.estimate(estimateParameters, function(error, estimate_data) {
-    });
+    estimate_data = brawndo.order.estimate(estimate_params)
 
 An example of a successful response will look like this:
 
     {
-        success : true,
-        timestamp: '2015-03-05T14:51:14+00:00',
-        data : {
-            ETA: '243.1',
-            Distance: '0.62',
-            From: '78701',
-            To: '78701',
-            asap: {
-                Price: '19.00',
-                ETA: '243.1',
-                Distance: '0.62'
+        success => true,
+        timestamp => '2015-03-05T14:51:14+00:00',
+        data => {
+            ETA => '243.1',
+            Distance => '0.62',
+            From => '78701',
+            To => '78701',
+            asap => {
+                Price => '19.00',
+                ETA => '243.1',
+                Distance => '0.62'
             },
-            two_hr: {
-                Price: '17.00',
-                ETA: '243.1',
-                Distance: '0.62'
+            two_hr => {
+                Price => '17.00',
+                ETA => '243.1',
+                Distance => '0.62'
             },
-            four_hr: {
-                Price: '15.00',
-                ETA: '243.1',
-                Distance: '0.62'
+            four_hr => {
+                Price => '15.00',
+                ETA => '243.1',
+                Distance => '0.62'
             },
-            after_hr: {
-                Price: '21.00',
-                ETA: '243.1',
-                Distance: '0.62'
+            after_hr => {
+                Price => '21.00',
+                ETA => '243.1',
+                Distance => '0.62'
             },
-            holiday: {
-                Price: '31.00',
-                ETA: '243.1',
-                Distance: '0.62'
+            holiday => {
+                Price => '31.00',
+                ETA => '243.1',
+                Distance => '0.62'
             }
         }
     }
@@ -293,35 +254,35 @@ Given a successful estimate call, and a window that you like, then the order can
 
 The origin and destination contain information regarding the addresses in the order.
 
-    var origin = {
-        address_line_1 : '117 San Jacinto Blvd',  // required
-        company_name : 'Gus\'s Fried Chicken',    // required
-        first_name : 'Napoleon',                  // required
-        last_name : 'Bonner',                     // required
-        phone : '5124744877',                     // required
-        email : 'orders@gussfriedchicken.com',    // required
-        city : 'Austin',                          // required
-        state : 'TX',                             // required
-        zip : '78701',                            // required
-        lat : '30.263706',                        // required
-        lng : '-97.741703',                       // required
-        remarks : 'Be nice to napoleon'           // optional
-    };
+    origin = {
+        address_line_1 => '117 San Jacinto Blvd',  # required
+        company_name => 'Gus\'s Fried Chicken',    # required
+        first_name => 'Napoleon',                  # required
+        last_name => 'Bonner',                     # required
+        phone => '5124744877',                     # required
+        email => 'orders@gussfriedchicken.com',    # required
+        city => 'Austin',                          # required
+        state => 'TX',                             # required
+        zip => '78701',                            # required
+        lat => '30.263706',                        # required
+        lng => '-97.741703',                       # required
+        remarks => 'Be nice to napoleon'           # optional
+    }
 
-    var destination = {
-        address_line_1 : '800 Brazos Street',     // required
-        address_line_2 : '250',                   // optional
-        company_name : 'Dropoff Inc.',            // required
-        first_name : 'Algis',                     // required
-        last_name : 'Woss',                       // required
-        phone : '8444376763',                     // required
-        email : 'deliveries@dropoff.com',         // required
-        city : 'Austin',                          // required
-        state : 'TX',                             // required
-        zip : '78701',                            // required
-        lat : '30.269967',                        // required
-        lng : '-97.740838'                        // required
-    };
+    destination = {
+        address_line_1 => '800 Brazos Street',     # required
+        address_line_2 => '250',                   # optional
+        company_name => 'Dropoff Inc.',            # required
+        first_name => 'Algis',                     # required
+        last_name => 'Woss',                       # required
+        phone => '8444376763',                     # required
+        email => 'deliveries@dropoff.com',         # required
+        city => 'Austin',                          # required
+        state => 'TX',                             # required
+        zip => '78701',                            # required
+        lat => '30.269967',                        # required
+        lng => '-97.740838'                        # required
+    }
 
 * **address_line_1** - the street information for the origin or destination.  Required.
 * **address_line_2** - additional information for the address for the origin or destination (ie suite number).  Optional.
@@ -341,17 +302,17 @@ The origin and destination contain information regarding the addresses in the or
 
 The details contain attributes about the order
 
-    var details = {
-        quantity : 1,                   // required
-        weight : 5,                     // required
-        eta : void(0),                  // required
-        distance : void(0),             // required
-        price : void(0),                // required
-        ready_date : 1425578400,        // required
-        type : void(0),                 // required
-        reference_name : void(0),       // optional
-        reference_code : void(0)        // optional
-    };
+    details = {
+        quantity => 1,                      # required
+        weight => 5,                        # required
+        eta => void(0),                     # required
+        distance => nil,                    # required
+        price => nil,                       # required
+        ready_date => Time.now.utc_offset,  # required
+        type => nil,                        # required
+        reference_name => nil,              # optional
+        reference_code => nil               # optional
+    }
 
 * **quantity** - the number of packages in the order. Required.
 * **weight** - the weight of the packages in the order. Required.
@@ -365,39 +326,41 @@ The details contain attributes about the order
 
 Once this data is created, you can create the order.
 
-    brawndo.order.create({
-        origin : origin,
-        destination : destination,
-        details : details
-    }, function(error, data) {
-    });
+    order = {
+      origin => origin,
+      destination => destination,
+      details => details
+    }
+    
+    order_create_response = brawndo.order.create(order)
 
 Note that if you want to create this order on behalf of a managed client as an enterprise client user you will need to specify the company_id.
 
-    brawndo.order.create({
-        origin : origin,
-        destination : destination,
-        details : details,
-        company_id : '1111111111111'
-    }, function(error, data) {
-    });
+    order = {
+      origin => origin,
+      destination => destination,
+      details => details,
+      company_id => '1111111111111'
+    }
+    
+    order_create_response = brawndo.order.create(order)
 
 The data in the callback will contain the id of the new order as well as the url where you can track the order progress.
 
 
 ### Cancelling an order <a id="cancel"></a>
 
-    brawndo.order.cancel(order_id, function(error, data) {});
+    order_cancel_response = brawndo.order.cancel(order_id)
 
 	
 If you are trying to cancel an order for a manage client order as an enterprise client user, include the company_id in the argument parameters
 
-	  brawndo.order.cancel({ 
-	    order_id : '61AE-Ozd7-L12',
-	    company_id : '1111111111111'
-	  }, 
-	  function(error, data) {
-	  });
+    order_cancel_data = { 
+      order_id => '61AE-Ozd7-L12',
+      company_id => '1111111111111'
+    }
+    
+	  order_cancel_response = brawndo.order.cancel(order_cancel_data)
     
 * **order_id** - the id of the order to cancel.
 * **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who you would like to cancel an order for. This is optional and only works for enterprise clients.
@@ -412,114 +375,122 @@ An order can be cancelled in these situations
     
 ### Getting a specific order <a id="specific"></a>
 
-    brawndo.order.read({order_id : 'zzzz-zzzz-zzz'}, function(error, data) {
-    });
+    order_read_params = {
+      order_id => 'zzzz-zzzz-zzz'
+    }
+    
+    order_data = brawndo.order.read(order_read_params)
 
 Example response
 
     {
-         data: {
-             destination: {
-                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
-                 short_id: '06ex-r3zV-BMb',
-                 createdate: 1425653646,
-                 updatedate: 1425653646,
-                 order_status_code: 0,
-                 company_name: 'Dropoff Inc.',
-                 first_name: 'Algis',
-                 last_name: 'Woss',
-                 address_line_1: '800 Brazos Street',
-                 address_line_2: '250',
-                 city: 'Austin',
-                 state: 'TX',
-                 zip: '78701',
-                 phone_number: '8444376763',
-                 email_address: 'deliveries@dropoff.com',
-                 lng: -97.740838,
-                 lat: 30.269967
+         data => {
+             destination => {
+                 order_id => 'ac156e24a24484a382f66b8cadf6fa83',
+                 short_id => '06ex-r3zV-BMb',
+                 createdate => 1425653646,
+                 updatedate => 1425653646,
+                 order_status_code => 0,
+                 company_name => 'Dropoff Inc.',
+                 first_name => 'Algis',
+                 last_name => 'Woss',
+                 address_line_1 => '800 Brazos Street',
+                 address_line_2 => '250',
+                 city => 'Austin',
+                 state => 'TX',
+                 zip => '78701',
+                 phone_number => '8444376763',
+                 email_address => 'deliveries@dropoff.com',
+                 lng => -97.740838,
+                 lat => 30.269967
              },
-             details: {
-                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
-                 short_id: '06ex-r3zV-BMb',
-                 createdate: 1425653646,
-                 customer_name: 'Algis Woss',
-                 type: 'ASAP',
-                 market: 'austin',
-                 timezone: 'America/Chicago',
-                 price: '15.00',
-                 signed: 'false',
-                 distance: '0.62',
-                 order_status_code: 0,
-                 wait_time: 0,
-                 order_status_name: 'Submitted',
-                 pickupETA: 'TBD',
-                 deliveryETA: '243.1',
-                 signature_exists: 'NO',
-                 quantity: 1,
-                 weight: 5,
-                 readyforpickupdate: 1425578400,
-                 updatedate: 1425653646
+             details => {
+                 order_id => 'ac156e24a24484a382f66b8cadf6fa83',
+                 short_id => '06ex-r3zV-BMb',
+                 createdate => 1425653646,
+                 customer_name => 'Algis Woss',
+                 type => 'ASAP',
+                 market => 'austin',
+                 timezone => 'America/Chicago',
+                 price => '15.00',
+                 signed => 'false',
+                 distance => '0.62',
+                 order_status_code => 0,
+                 wait_time => 0,
+                 order_status_name => 'Submitted',
+                 pickupETA => 'TBD',
+                 deliveryETA => '243.1',
+                 signature_exists => 'NO',
+                 quantity => 1,
+                 weight => 5,
+                 readyforpickupdate => 1425578400,
+                 updatedate => 1425653646
              },
-             origin: {
-                 order_id: 'ac156e24a24484a382f66b8cadf6fa83',
-                 short_id: '06ex-r3zV-BMb',
-                 createdate: 1425653646,
-                 updatedate: 1425653646,
-                 order_status_code: 0,
-                 company_name: 'Gus's Fried Chicken',
-                 first_name: 'Napoleon',
-                 last_name: 'Bonner',
-                 address_line_1: '117 San Jacinto Blvd',
-                 city: 'Austin',
-                 state: 'TX',
-                 zip: '78701',
-                 phone_number: '5124744877',
-                 email_address: 'orders@gussfriedchicken.com',
-                 lng: -97.741703,
-                 lat: 30.263706,
-                 market: 'austin',
-                 remarks: 'Be nice to napoleon'
+             origin => {
+                 order_id => 'ac156e24a24484a382f66b8cadf6fa83',
+                 short_id => '06ex-r3zV-BMb',
+                 createdate => 1425653646,
+                 updatedate => 1425653646,
+                 order_status_code => 0,
+                 company_name => 'Gus's Fried Chicken',
+                 first_name => 'Napoleon',
+                 last_name => 'Bonner',
+                 address_line_1 => '117 San Jacinto Blvd',
+                 city => 'Austin',
+                 state => 'TX',
+                 zip => '78701',
+                 phone_number => '5124744877',
+                 email_address => 'orders@gussfriedchicken.com',
+                 lng => -97.741703,
+                 lat => 30.263706,
+                 market => 'austin',
+                 remarks => 'Be nice to napoleon'
              }
         },
-        success: true,
-        timestamp: '2015-03-09T18:42:15+00:00'
+        success => true,
+        timestamp => '2015-03-09T18:42:15+00:00'
     }
 
 ### Getting a page of orders <a id="page"></a>
 
 Get the first page of orders
 
-    brawndo.order.read(function(error, data) {
-    });
+    brawndo.order.read({})
 
 Get a page of orders after the last_key from a previous response
 
-    brawndo.order.read({last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'}, function(error, data) {
-    });
+    order_read_params = {
+      last_key => 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'
+    }
+    
+    order_data = brawndo.order.read(order_read_params)
 
 Get the first page of orders as an enterprise client user for a managed client
 
-    brawndo.order.read({company_id : '1111111111111'}, function(error, data) {
-    });
+    order_read_params = {
+      company_id => '1111111111111'
+    }
+    
+    order_data = brawndo.order.read(order_read_params)
 
 Get a page of orders after the last_key from a previous response as an enterprise client user for a managed client
 
-    brawndo.order.read({
-      last_key : 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'
-      company_id : '1111111111111'
-    }, 
-    function(error, data) {
-    });
+    order_read_params = {
+      company_id => '1111111111111',
+      last_key => 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas'
+    }
+    
+    order_data = brawndo.order.read(order_read_params)
 
 Example response
 
     {
-        data: [ ... ],
-        count: 10,
-        total: 248,
-        last_key: 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas',
-        success: true,
-        timestamp: '2015-03-09T18:42:15+00:00'
+        data => [ ... ],
+        count => 10,
+        total => 248,
+        last_key => 'zhjklzvxchjladfshjklafdsknvjklfadjlhafdsjlkavdnjlvadslnjkdas',
+        success => true,
+        timestamp => '2015-03-09T18:42:15+00:00'
     }
 
 ## Tips <a id="tips"></a>
@@ -528,51 +499,53 @@ You can create, delete, and read tips for individual orders.  Please note that t
 
 ### Creating a tip <a id="tip_create"></a>
 
-Tip creation requires two parameters, the order id **(order_id)** and the tip amount **(amount)**.
+Tip creation requires two parameters, the order id **(order_id)** and the tip amount **(amount)**
 
-	brawndo.order.tip.create({ order_id :'61AE-Ozd7-L12', amount : 4.44 }, function(error, data) {
-	});
+    tip_params = {
+      order_id =>'61AE-Ozd7-L12', 
+      amount => 4.44
+    }
+    
+    tip_create_response = brawndo.order.tip.create(tip_params)
 
 ### Deleting a tip <a id="tip_delete"></a>
 
 Tip deletion only requires the order id **(order_id)**.
 
-	brawndo.order.tip.delete('61AE-Ozd7-L12', function(error, data) {
-	});
+    tip_delete_response = brawndo.order.tip.delete('61AE-Ozd7-L12')
 	
 If you are trying to delete a tip on a manage client order as an enterprise client user, include the company_id in the argument parameters
 
-	brawndo.order.tip.delete({ 
-	  order_id : '61AE-Ozd7-L12',
-	  company_id : '1111111111111'
-	}, 
-	function(error, data) {
-	});
+    tip_delete_params = { 
+      order_id => '61AE-Ozd7-L12',
+      company_id => '1111111111111'
+    }
+    
+    tip_delete_response = brawndo.order.tip.delete(tip_delete_params)
 
 ### Reading a tip <a id="tip_read"></a>
 
 Tip reading only requires the order id **(order_id)**.
 
-	brawndo.order.tip.read('61AE-Ozd7-L12', function(error, data) {
-	});
+    tip_read_response = brawndo.order.tip.read('61AE-Ozd7-L12')
 	
 If you are trying to read a tip on a manage client order as an enterprise client user, include the company_id in the argument parameters
 
-	brawndo.order.tip.read({ 
-	  order_id : '61AE-Ozd7-L12',
-	  company_id : '1111111111111'
-	}, 
-	function(error, data) {
-	});
+    tip_read_params = { 
+      order_id => '61AE-Ozd7-L12',
+      company_id => '1111111111111'
+    }
+    
+    tip_read_response = brawndo.order.tip.read(tip_read_params)
 
 Example response:
 
-	{
-		amount: "4.44"
-		createdate: "2016-02-18T16:46:52+00:00"
-		description: "Tip added by Dropoff(Algis Woss)"
-		updatedate: "2016-02-18T16:46:52+00:00"
-	}
+    {
+      amount => "4.44"
+      createdate => "2016-02-18T16:46:52+00:00"
+      description => "Tip added by Dropoff(Algis Woss)"
+      updatedate => "2016-02-18T16:46:52+00:00"
+    }
 
 ## Webhooks <a id="webhook"></a>
 
@@ -700,4 +673,4 @@ The simulation will create an order, assign it to a simulation agent, and move t
 
 **You can only run a simulation once every fifteen minutes.**
 
-    brawndo.order.simulate({ market : 'austin' }, function(error, result) {});
+    simulation_response = brawndo.order.simulate('austin')

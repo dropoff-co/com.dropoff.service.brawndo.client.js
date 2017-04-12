@@ -3,6 +3,7 @@ clients/go/pkg/**
 clients/php/DropoffLastMileClientPHP.zip
 clients/php/LastMileDDC.php
 clients/php/LastMileExample.php
+clients/ruby/.idea/**
 json/**
 node_modules/**
 clients/php/.idea/**
