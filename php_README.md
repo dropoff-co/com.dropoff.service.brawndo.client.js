@@ -208,7 +208,7 @@ The hierarchy looks something like this:
         │  ├─ EnterpriseCo Paris (1111111111111)
         │  ├─ EnterpriseCo London (1111111111113)
         │  └─ EnterpriseCo Milan (1111111111114)
-        └─ Nordstrom NA (1111111111115)
+        └─ EnterpriseCo NA (1111111111115)
            ├─ EnterpriseCo Chicago (1111111111116)
            ├─ EnterpriseCo New York (1111111111117)
            └─ EnterpriseCo Los Angeles (1111111111118)
