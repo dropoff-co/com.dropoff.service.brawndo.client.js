@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/awoss/com.dropoff.service.brawndo.client.git"
+    "url" : "https://github.com/dropoff-co/com.dropoff.service.brawndo.client.git"
   },
   "author": "Algis Woss",
   "bugs": {
