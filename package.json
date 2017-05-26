@@ -14,7 +14,6 @@
   "bugs": {
     "url": "https://github.com/awoss/com.dropoff.service.brawndo.client/issues"
   },
-  "files": [ "signing.js", "brawndo.js", "example_post.js", "example_webhook_route.js" ],
   "homepage": "https://github.com/awoss/com.dropoff.service.brawndo.client",
   "dependencies": {
     "async": "^1.4.2",
