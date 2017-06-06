@@ -37,8 +37,8 @@ To configure things you will have to create both a Brawndo Client and a Transpor
 	)
 	
 	var t brawndo.Transport
-	t.ApiURL = "https://qa-brawndo.dropoff.com/v1"
-	t.Host = "qa-brawndo.dropoff.com"
+	t.ApiURL = "https://sandbox-brawndo.dropoff.com/v1"
+	t.Host = "sandbox-brawndo.dropoff.com"
 	t.PublicKey = "91e9b320b18375927592759179d0b3d5415db4b80d4b553f46580a60119afc8"
 	t.SecretKey = "7f8fee62743d7febcda6482364826dfbeacbf4726f62d6fda26a3b906817482"
 
@@ -191,6 +191,7 @@ This is the structure of a successful response:
 * **Asap** - contains pricing for asap delivery from the ready time.
 * **TwoHr** - contains pricing for delivery within two hours of the ready time.
 * **FourHr** - contains pricing for delivery within four hours of the ready time.
+* **AllDay** - the pricing for an order that needs to delivered by end of business on a weekday..
 * **ETA** - the estimated time (in seconds) it will take to go from the origin to the destination.
 * **Distance** - the distance from the origin to the destination.  In miles.
 * **Price** - the price of the delivery for the time frame and service type.
