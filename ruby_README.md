@@ -35,10 +35,10 @@ Copy the ruby client into your application.  Let's assume you copied it into a f
 You will then have to configure the brawndo instance via the constructor.
 
     config = {}
-    config['public_key'] = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8'
-    config['private_key'] = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482'
-    config['api_url'] = 'https://qa-brawndo.dropoff.com/v1'
-    config['host'] = 'qa-brawndo.dropoff.com'
+    config['public_key'] = 'b123bebbce97f1b06382095c3580d1be4417dbe376956ae9'
+    config['private_key'] = '87150f36c5de06fdf9bf775e8a7a1d0248de9af3d8930da0'
+    config['api_url'] = 'https://sandbox-brawndo.dropoff.com/v1'
+    config['host'] = 'sandbox-brawndo.dropoff.com'
     
     brawndo = Brawndo.new(config)
 
@@ -195,13 +195,17 @@ Before you place an order you will first want to estimate the distance, eta, and
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
 * **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's estimate you want here.  This is optional and only works for enterprise clients.
 
+
     estimate_data = brawndo.order.estimate(estimate_params)
 
+
 An example of a successful response will look like this:
+
 
     {
         success => true,
         timestamp => '2015-03-05T14:51:14+00:00',
+        service_type => 'standard',
         data => {
             ETA => '243.1',
             Distance => '0.62',
@@ -222,13 +226,8 @@ An example of a successful response will look like this:
                 ETA => '243.1',
                 Distance => '0.62'
             },
-            after_hr => {
-                Price => '21.00',
-                ETA => '243.1',
-                Distance => '0.62'
-            },
-            holiday => {
-                Price => '31.00',
+            all_day => {
+                Price => '19.00',
                 ETA => '243.1',
                 Distance => '0.62'
             }
@@ -243,8 +242,8 @@ An example of a successful response will look like this:
 * **asap** - the pricing for an order that needs to delivered within an hour of the ready time.
 * **two_hr** - the pricing for an order that needs to delivered within two hours of the ready time.
 * **four_hr** - the pricing for an order that needs to delivered within four hours of the ready time.
-* **after_hr** - the pricing for an order that needs to delivered on a weekend or after 5:30PM on a weekday.
-* **holiday** - the pricing for an order that needs to delivered on a holiday.
+* **all_day** - the pricing for an order that needs to delivered by end of business on a weekday.
+* **service_type** - The service type for pricing, could be standard, holiday, or after_hr.
 
 ### Placing an order <a id="placing"></a>
 

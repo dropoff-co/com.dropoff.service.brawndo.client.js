@@ -30,10 +30,10 @@ This is the 3rd party dropoff php client for creating and viewing orders and add
 
 You will have to configure the brawndo instance via the constructor.
 
-	$public_key = 'user::91e9b320b0b5d71098d2f6a8919d0b3d5415db4b80d4b553f46580a60119afc8';
-	$private_key = '7f8fee62743d7bb5bf2e79a0438516a18f4a4a4df4d0cfffda26a3b906817482';
-	$api_url = 'https://qa-brawndo.dropoff.com/v1';
-	$host = 'qa-brawndo.dropoff.com';
+	$public_key = 'b123bebbce97f1b06382095c3580d1be4417dbe376956ae9';
+	$private_key = '87150f36c5de06fdf9bf775e8a7a1d0248de9af3d8930da0';
+	$api_url = 'https://sandbox-brawndo.dropoff.com/v1';
+	$host = 'sandbox-brawndo.dropoff.com';
 	$brawndo = new \Dropoff\Brawndo($public_key, $private_key, $api_url, $host);
 
 ---
@@ -253,7 +253,10 @@ Before you place an order you will first want to estimate the distance, eta, and
 * **ready_timestamp** - the unix timestamp (in seconds) representing when the order is ready to be picked up.  If not set we assume immediate availability for pickup.
 * **company_id** - if you are using brawndo as an enterprise client that manages other dropoff clients you can specify the managed client id who's estimate you want here.  This is optional and only works for enterprise clients.
 ---
+
+
 	$result = $brawndo->estimate('800 Brazos St, Austin, TX 78701', '2517 Thornton Rd, Austin, TX 78704', date('P'), time(), $company_id);
+
 
 An example of a successful result will look like this:
 
@@ -291,6 +294,15 @@ An example of a successful result will look like this:
 	      ["Price"]=>
 	      string(5) "15.96"
 	    }
+	    ["all_day"]=>
+	    array(3) {
+	      ["ETA"]=>
+	      string(6) "1023.1"
+	      ["Distance"]=>
+	      string(4) "3.79"
+	      ["Price"]=>
+	      string(5) "13.96"
+	    }
 	    ["service_type"]=>
 	    string(8) "standard"
 	  }
@@ -309,8 +321,8 @@ An example of a successful result will look like this:
 * **asap** - the pricing for an order that needs to delivered within an hour of the ready time.
 * **two_hr** - the pricing for an order that needs to delivered within two hours of the ready time.
 * **four_hr** - the pricing for an order that needs to delivered within four hours of the ready time.
-* **after_hr** - the pricing for an order that needs to delivered on a weekend or after 5:30PM on a weekday.
-* **holiday** - the pricing for an order that needs to delivered on a holiday.
+* **all_day** - the pricing for an order that needs to delivered by end of business on a weekday.
+* **service_type** - The service type for pricing, could be standard, holiday, or after_hr.
 
 ---
 ### Placing an order <a id="placing"></a>
