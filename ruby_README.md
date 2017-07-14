@@ -1,6 +1,6 @@
 
 
-# com.dropoff.service.brawndo.client
+# Brawndo Ruby Client
 
 This is the 3rd party dropoff ruby client for creating and viewing orders.
 

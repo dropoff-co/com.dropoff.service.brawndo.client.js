@@ -1,6 +1,6 @@
 
 
-# com.dropoff.service.brawndo.client
+# Brawndo PHP Client
 
 This is the 3rd party dropoff php client for creating and viewing orders and adding tips.
 

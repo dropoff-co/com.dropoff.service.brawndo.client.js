@@ -1,6 +1,6 @@
 
 
-# com.dropoff.service.brawndo.client
+# Brawndo Javascript Client
 
 This is the 3rd party dropoff javascript client for creating and viewing orders.
 
