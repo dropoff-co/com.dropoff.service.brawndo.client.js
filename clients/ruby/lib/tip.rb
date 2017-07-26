@@ -36,7 +36,7 @@ class Tip
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(tip_uri.hostname, tip_uri.port) {|http|
+    response = Net::HTTP.start(tip_uri.hostname, tip_uri.port, :use_ssl => (tip_uri.port == 443)) {|http|
       http.request(request)
     }
 
@@ -77,7 +77,7 @@ class Tip
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(tip_uri.hostname, tip_uri.port) {|http|
+    response = Net::HTTP.start(tip_uri.hostname, tip_uri.port, :use_ssl => (tip_uri.port == 443)) {|http|
       http.request(request)
     }
 
@@ -118,7 +118,7 @@ class Tip
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(tip_uri.hostname, tip_uri.port) {|http|
+    response = Net::HTTP.start(tip_uri.hostname, tip_uri.port, :use_ssl => (tip_uri.port == 443)) {|http|
       http.request(request)
     }
 

@@ -32,7 +32,11 @@ class Brawndo
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(info_uri.hostname, info_uri.port) {|http|
+    p info_uri.hostname
+    p info_uri.port
+    p info_uri
+
+    response = Net::HTTP.start(info_uri.hostname, info_uri.port, :use_ssl => (info_uri.port == 443)) {|http|
       http.request(request)
     }
 

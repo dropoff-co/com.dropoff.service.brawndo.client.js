@@ -41,7 +41,7 @@ class Order
                                                      @public_key)
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(order_uri.hostname, order_uri.port) {|http|
+    response = Net::HTTP.start(order_uri.hostname, order_uri.port, :use_ssl => (order_uri.port == 443)) {|http|
       http.request(request)
     }
 
@@ -89,7 +89,7 @@ class Order
                                                      @public_key)
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(order_uri.hostname, order_uri.port) {|http|
+    response = Net::HTTP.start(order_uri.hostname, order_uri.port, :use_ssl => (order_uri.port == 443)) {|http|
       http.request(request)
     }
 
@@ -114,7 +114,7 @@ class Order
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(estimate_uri.hostname, estimate_uri.port) {|http|
+    response = Net::HTTP.start(estimate_uri.hostname, estimate_uri.port, :use_ssl => (estimate_uri.port == 443)) {|http|
       http.request(request)
     }
 
@@ -155,7 +155,7 @@ class Order
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(cancel_uri.hostname, cancel_uri.port) {|http|
+    response = Net::HTTP.start(cancel_uri.hostname, cancel_uri.port, :use_ssl => (cancel_uri.port == 443)) {|http|
       http.request(request)
     }
 
@@ -179,7 +179,7 @@ class Order
 
     Signing.sign(signing_params)
 
-    response = Net::HTTP.start(simulation_uri.hostname, simulation_uri.port) {|http|
+    response = Net::HTTP.start(simulation_uri.hostname, simulation_uri.port, :use_ssl => (simulation_uri.port == 443)) {|http|
       http.request(request)
     }
 
