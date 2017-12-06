@@ -1,6 +1,6 @@
 {
-  "name": "com.dropoff.service.brawndo.client",
-  "version": "7.3.3",
+  "name": "com.dropoff.service.brawndo.client.js",
+  "version": "1.0.1",
   "description": "Brawndo Isomorphic Javascript Client",
   "main": "brawndo.js",
   "scripts": {
@@ -8,13 +8,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/awoss/com.dropoff.service.brawndo.client.git"
+    "url": "https://github.com/dropoff-co/com.dropoff.service.brawndo.client.js.git"
   },
   "author": "Algis Woss",
   "bugs": {
-    "url": "https://github.com/awoss/com.dropoff.service.brawndo.client/issues"
+    "url": "https://github.com/dropoff-co/com.dropoff.service.brawndo.client.js/issues"
   },
-  "homepage": "https://github.com/awoss/com.dropoff.service.brawndo.client",
+  "homepage": "https://github.com/dropoff-co/com.dropoff.service.brawndo.client.js",
   "dependencies": {
     "async": "^1.4.2",
     "crypto-js": "^3.1.2-5",
