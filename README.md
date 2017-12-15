@@ -355,7 +355,7 @@ The details contain attributes about the order
 * **eta** - the eta from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
 * **distance** - the distance from the origin to the destination.  Should use the value retrieved in the getEstimate call. Required.
 * **price** - the price for the order.  Should use the value retrieved in the getEstimate call.. Required.
-* **ready_date** - the unix timestamp (seconds) indicating when the order can be picked up. Can be up to 60 days into the future.  Required.
+* **ready_date** - the unix timestamp (seconds) indicating when the order can be picked up. Can be from 30 minutes up to 60 days into the future.  Required.
 * **type** - the order window.  Can be asap, two_hr, four_hr, after_hr, or holiday depending on the ready_date. Required.
 * **reference_name** - a field for your internal referencing. Optional.
 * **reference_code** - a field for your internal referencing. Optional.
