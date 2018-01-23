@@ -234,6 +234,86 @@ module.exports.order.cancel = function(params, callback) {
     }));
 };
 
+module.exports.order.properties = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  if (typeof params === 'function') {
+    callback = params;
+    params = {};
+  }
+
+  var req = void(0);
+
+  if (params && params.company_id) {
+    req = request
+      .get(API_ORDER_URL + '/properties')
+      .query({
+        company_id : params.company_id
+      });
+  } else {
+    req = request
+      .get(API_ORDER_URL + '/properties')
+  }
+
+  req
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH + '/properties', function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
+module.exports.order.signature = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  if (typeof params === 'function') {
+    callback = params;
+    params = {};
+  }
+
+  if (!params.order_id) {
+    throw new Error('Call requires order_id');
+  }
+
+  var req = void(0);
+
+  if (params && params.company_id) {
+    req = request
+      .get(API_ORDER_URL + '/signature/' + params.order_id)
+      .query({
+        company_id : params.company_id
+      });
+  } else {
+    req = request
+      .get(API_ORDER_URL + '/signature/' + params.order_id)
+  }
+
+  req
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH + '/signature/' + params.order_id, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
 module.exports.order.tip.create = function(params, callback) {
   if (!params.order_id || !params.amount) {
     throw new Error('Call requires order_id and amount parameters');
