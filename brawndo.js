@@ -497,26 +497,44 @@ var getOrder = function(order_id, company_id, callback) {
     }));
 };
 
-var startSimulation = function(market, callback) {
-  if (!market) {
-    throw new Error('Call requires you to specify a market (ie. austin or houston)');
+var startSimulation = function(params, callback) {
+  if (params.market) {
+    var market = params.market;
+
+    request
+      .get(API_ORDER_URL + '/simulate/' + market)
+      .set('Accept', 'application/json')
+      .use(signing_mw(API_ORDER_PATH  + '/simulate/' + market, function(error, response) {
+        if (error) {
+          callback(error);
+        } else if (response.status === 200 && response.body) {
+          callback(void(0), response.body);
+        } else {
+          var error = new Error('response.status is ' + response.status);
+          error.response = response;
+          callback(error);
+        }
+      }));
+  } else if (params.order_id) {
+    var order_id = params.order_id;
+
+    request
+      .get(API_ORDER_URL + '/simulate/order/' + order_id)
+      .set('Accept', 'application/json')
+      .use(signing_mw(API_ORDER_PATH  + '/simulate/order/' + order_id, function(error, response) {
+        if (error) {
+          callback(error);
+        } else if (response.status === 200 && response.body) {
+          callback(void(0), response.body);
+        } else {
+          var error = new Error('response.status is ' + response.status);
+          error.response = response;
+          callback(error);
+        }
+      }));
+  } else {
+    callback(new Error('Call requires you to specify a market (ie. austin or houston), or a valid order id'));
   }
-
-  request
-    .get(API_ORDER_URL + '/simulate/' + market)
-    .set('Accept', 'application/json')
-    .use(signing_mw(API_ORDER_PATH  + '/simulate/' + market, function(error, response) {
-      if (error) {
-        callback(error);
-      } else if (response.status === 200 && response.body) {
-        callback(void(0), response.body);
-      } else {
-        var error = new Error('response.status is ' + response.status);
-        error.response = response;
-        callback(error);
-      }
-    }));
-
 };
 
 module.exports.order.read = function(params, callback) {
@@ -534,5 +552,5 @@ module.exports.order.read = function(params, callback) {
 };
 
 module.exports.order.simulate = function(params, callback) {
-  startSimulation(params.market, callback);
+  startSimulation(params, callback);
 };
