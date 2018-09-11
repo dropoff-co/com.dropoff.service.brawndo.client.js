@@ -500,9 +500,15 @@ var getOrder = function(order_id, company_id, callback) {
 var startSimulation = function(params, callback) {
   if (params.market) {
     var market = params.market;
+    var req = request.get(API_ORDER_URL + '/simulate/' + market);
 
-    request
-      .get(API_ORDER_URL + '/simulate/' + market)
+    if (params.company_id) {
+      req = req.query({
+        company_id : params.company_id
+      });
+    }
+
+    req
       .set('Accept', 'application/json')
       .use(signing_mw(API_ORDER_PATH  + '/simulate/' + market, function(error, response) {
         if (error) {
@@ -517,9 +523,16 @@ var startSimulation = function(params, callback) {
       }));
   } else if (params.order_id) {
     var order_id = params.order_id;
+    var req = request.get(API_ORDER_URL + '/simulate/order/' + order_id)
 
-    request
-      .get(API_ORDER_URL + '/simulate/order/' + order_id)
+
+    if (params.company_id) {
+      req = req.query({
+        company_id : params.company_id
+      });
+    }
+
+    req
       .set('Accept', 'application/json')
       .use(signing_mw(API_ORDER_PATH  + '/simulate/order/' + order_id, function(error, response) {
         if (error) {
