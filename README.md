@@ -544,7 +544,7 @@ let items = [
     }
 ];
 ```
-This is can be either optional, required, or not allowed depending on the client's order items response.
+This can be optional, required, or not allowed depending on the client's order items response.
 
 Once this data is created, you can create the order.
 
