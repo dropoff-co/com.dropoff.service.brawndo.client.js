@@ -119,10 +119,40 @@ brawndo.order.estimate(estimateParameters, function(error, estimate_data) {
     console.log(estimate_data);
   }
 
+  let items = [
+    {
+        "sku": "128UV9",
+        "quantity": 3,
+        "weight": 10,
+        "height": 1.4,
+        "width": 1.2,
+        "depth": 2.3,
+        "unit": "ft",
+        "container": "BOX",
+        "description": "Box of t-shirts",
+        "price": "59.99",
+        "temperature": "NA",
+        "person_name": "T. Shirt"
+    },
+    {
+        "sku": "128UV8",
+        "height": 9.4,
+        "width": 6.2,
+        "depth": 3.3,
+        "unit": "in",
+        "container": "BAG",
+        "description": "Bag of socks",
+        "price": "9.99",
+        "temperature": "NA",
+        "person_name": "Jim"
+    }
+  ];
+
   brawndo.order.create({
     origin : origin,
     destination : destination,
-    details : details
+    details : details,
+    items: items
   }, function(error, data) {
     console.log(error);
     console.log(data);
