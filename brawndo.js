@@ -272,6 +272,44 @@ module.exports.order.properties = function(params, callback) {
     }));
 };
 
+module.exports.order.items = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  if (typeof params === 'function') {
+    callback = params;
+    params = {};
+  }
+
+  var req = void(0);
+
+  if (params && params.company_id) {
+    req = request
+      .get(API_ORDER_URL + '/items')
+      .query({
+        company_id : params.company_id
+      });
+  } else {
+    req = request
+      .get(API_ORDER_URL + '/items')
+  }
+
+  req
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH + '/items', function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
 module.exports.order.signature = function(params, callback) {
   if (!configured) {
     throw new Error('Call configure before calling the api');
