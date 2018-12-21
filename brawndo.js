@@ -21,6 +21,28 @@ var API_ESTIMATE_URL = void(0);
 var API_INFO_URL = void(0);
 var API_ORDER_URL = void(0);
 
+module.exports.TEMPERATURES = {
+  NA: 0,
+  AMBIENT: 100,
+  REFRIGERATED: 200,
+  FROZEN: 300
+};
+
+module.exports.CONTAINERS = {
+  NA: 0,
+  BAG: 100,
+  BOX: 200,
+  TRAY: 300,
+  PALLET: 400,
+  BARREL: 500,
+  BASKET: 600,
+  BUCKET: 700,
+  CARTON: 800,
+  CASE: 900,
+  COOLER: 1000,
+  CRATE: 1100
+};
+
 var signing_mw = function(path, callback) {
   return function(sa_request) {
     var timestamp = signing.generateXDropoffDate().x_dropoff_date;
