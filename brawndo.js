@@ -40,7 +40,8 @@ module.exports.CONTAINERS = {
   CARTON: 800,
   CASE: 900,
   COOLER: 1000,
-  CRATE: 1100
+  CRATE: 1100,
+  TOTE: 1200
 };
 
 var signing_mw = function(path, callback) {
