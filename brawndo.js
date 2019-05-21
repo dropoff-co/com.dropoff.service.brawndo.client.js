@@ -277,7 +277,7 @@ module.exports.order.properties = function(params, callback) {
       });
   } else {
     req = request
-      .get(API_ORDER_URL + '/properties')
+      .get(API_ORDER_URL + '/properties');
   }
 
   req
@@ -294,6 +294,83 @@ module.exports.order.properties = function(params, callback) {
       }
     }));
 };
+
+module.exports.order.driver_actions_meta = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  if (typeof params === 'function') {
+    callback = params;
+    params = {};
+  }
+
+  var req = void(0);
+
+  if (params && params.company_id) {
+    req = request
+      .get(API_ORDER_URL + '/driver_actions_meta')
+      .query({
+        company_id : params.company_id
+      });
+  } else {
+    req = request
+      .get(API_ORDER_URL + '/driver_actions_meta');
+  }
+
+  req
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH + '/driver_actions_meta', function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
+module.exports.order.driver_actions = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  if (typeof params === 'function') {
+    callback = params;
+    params = {};
+  }
+
+  var req = void(0);
+
+  if (params && params.company_id) {
+    req = request
+      .get(API_ORDER_URL + '/driver_actions')
+      .query({
+        company_id : params.company_id
+      });
+  } else {
+    req = request
+      .get(API_ORDER_URL + '/driver_actions');
+  }
+
+  req
+    .set('Accept', 'application/json')
+    .use(signing_mw(API_ORDER_PATH + '/driver_actions', function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
 
 module.exports.order.items = function(params, callback) {
   if (!configured) {
@@ -315,7 +392,7 @@ module.exports.order.items = function(params, callback) {
       });
   } else {
     req = request
-      .get(API_ORDER_URL + '/items')
+      .get(API_ORDER_URL + '/items');
   }
 
   req
@@ -357,7 +434,7 @@ module.exports.order.signature = function(params, callback) {
       });
   } else {
     req = request
-      .get(API_ORDER_URL + '/signature/' + params.order_id)
+      .get(API_ORDER_URL + '/signature/' + params.order_id);
   }
 
   req
@@ -584,7 +661,7 @@ var startSimulation = function(params, callback) {
       }));
   } else if (params.order_id) {
     var order_id = params.order_id;
-    var req = request.get(API_ORDER_URL + '/simulate/order/' + order_id)
+    var req = request.get(API_ORDER_URL + '/simulate/order/' + order_id);
 
 
     if (params.company_id) {
