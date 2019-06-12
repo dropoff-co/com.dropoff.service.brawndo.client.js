@@ -3,37 +3,12 @@
 const brawndo = require('./brawndo');
 
 brawndo.configure({
-  host: 'localhost:9094',
-  api_url : 'http://localhost:9094/v1',                                                      // required
-  public_key : '4ee8515f32be9537f3e66613323d9493ccbf61a7634c3863f05aa2298f6f3fe2',  // required
-  private_key : '6c6c4a8e0e9c4b28e3f5e9e41185286ca2283fb5b3bcb44e3354b5d55330f495'        // either this or hasher_url
+  host: 'sandbox-brawndo.dropoff.com',
+  api_url : 'https://sandbox-brawndo.dropoff.com/v1',                                                      // required
+  public_key : '',  // required
+  private_key : ''        // either this or hasher_url
 //  hasher_url : 'http://www.myserver.com/api/do_hash'  // either this or private_key
 });
-
-// brawndo.configure({
-//   host: 'qa-brawndo.dropoff.com',
-//   api_url : 'https://qa-brawndo.dropoff.com/v1',                                                      // required
-//   public_key : '4b3d8380de6ef6e1332da27a83a30e789118bf5d4b15a7d90648a1ae475ead74',  // required
-//   private_key : '7d098381cd14868e2331a0e5d5562949d1a98bced24cbf431467d0ef28f2208a'        // either this or hasher_url
-// //  hasher_url : 'http://www.myserver.com/api/do_hash'  // either this or private_key
-// });
-
-// brawndo.configure({
-//   host: 'sandbox-brawndo.dropoff.com',
-//   api_url : 'https://sandbox-brawndo.dropoff.com/v1',                                                      // required
-//   public_key : '362050195cb91ec1a99b0f7cdf9e6c767a85c5a50dd3da166e120f2cd0f17dcb',  // required
-//   private_key : '46c2c28c3b1c3185950fc528486f48e2b3d7e91d3b80462e3d67e5bdf855fe09'        // either this or hasher_url
-// //  hasher_url : 'http://www.myserver.com/api/do_hash'  // either this or private_key
-// });
-
-// enterprise
-// brawndo.configure({
-//   host: 'localhost:9094',
-//   api_url : 'http://localhost:9094/v1',                                                      // required
-//   public_key : '7e4b41400754b266fcc6004b00013373a14e7e84bc3f7ae9c3326c2c09491807',  // required
-//   private_key : '51a5a020d81916d71c58a29257d4c7cc0e11ba42a52481a3b2d7d627195489ee'        // either this or hasher_url
-// //  hasher_url : 'http://www.myserver.com/api/do_hash'  // either this or private_key
-// });
 
 brawndo.info((err, data) => {
   if (err) {
@@ -43,13 +18,16 @@ brawndo.info((err, data) => {
   }
 });
 
-// fe81ddc33df4b99e29010bf161b637cd
-// brawndo.order.properties({company_id: 'c46e6081ed854c7a697198a85ff100bd'}, (err, data) => {
+// brawndo.order.properties({company_id: ''}, (err, data) => {
 //   console.error('properties: ', err);
 //   console.error('properties data: ', data);
 // });
 
-brawndo.order.driver_actions_meta((err, data) => {
+const driver_action_params = {};
+driver_action_params.company_id = '';
+
+console.log(driver_action_params);
+brawndo.order.driver_actions_meta(driver_action_params, (err, data) => {
   if (err) {
     console.error('error driver_actions meta: ', err);
   } else if (data) {
@@ -58,37 +36,36 @@ brawndo.order.driver_actions_meta((err, data) => {
 });
 
 let origin = {
-  address_line_1 : '117 San Jacinto Blvd',  // required
-  company_name : 'Gus\'s Fried Chicken',    // required
-  first_name : 'Napoleon',                  // required
-  last_name : 'Bonner',                     // required
-  phone : '5124744877',                     // required
-  email : 'orders@gussfriedchicken.com',    // required
-  city : 'Austin',                          // required
-  state : 'TX',                             // required
-  zip : '78701',                            // required
-  lat : '30.263706',                        // required
-  lng : '-97.741703',                       // required
-  remarks : 'Be nice to napoleon',          // optional
-  phone : 5555555555,                       // optional
-  // driver_actions : "1100,1300",
+  address_line_1 : '117 San Jacinto Blvd',    // required
+  company_name : 'Dropoff Javascript Origin', // required
+  first_name : 'Napoleon',                    // required
+  last_name : 'Bonner',                       // required
+  phone : '5125555555',                       // required
+  email : 'noreply+origin@dropoff.com',       // required
+  city : 'Austin',                            // required
+  state : 'TX',                               // required
+  zip : '78701',                              // required
+  lat : '30.263706',                          // required
+  lng : '-97.741703',                         // required
+  remarks : 'Be nice to napoleon',            // optional
+  phone : 5555555555,                         // optional
+  // driver_actions : "1400",                 // optional
 };
 
 let destination = {
-  address_line_1 : '800 Brazos Street',     // required
-  address_line_2 : '250',                   // optional
-  company_name : 'Dropoff Inc.',            // required
-  first_name : 'Algis',                     // required
-  last_name : 'Woss',                       // required
-  phone : '8444376763',                     // required
-  email : 'deliveries@blah.com',         // required
-  city : 'Austin',                          // required
-  state : 'TX',                             // required
-  zip : '78701',                            // required
-  lat : '30.269967',                        // required
-  lng : '-97.740838',                    // required
-  phone : '555-555-5555',                   //optional
-  driver_actions : "2300,2500,2599",
+  address_line_1 : '1601 S MoPac Expy',      // required
+  address_line_2 : 'C301',                   // optional
+  company_name : 'Dropoff Inc.',             // required
+  first_name : 'Del',                        // required
+  last_name : 'Fitzgitibit',                 // required
+  phone : '5125555555',                      // required
+  email : 'noreply+destination@dropoff.com', // required
+  city : 'Austin',                           // required
+  state : 'TX',                              // required
+  zip : '78746',                             // required
+  lat : '30.260228',                         // required
+  lng : '-97.793359',                        // required
+  // driver_actions : "2400,2500,2599",      // optional
 };
 
 let details = {
@@ -182,7 +159,7 @@ quantity: Joi.number().integer(),
 
 var estimate_params = {};
 estimate_params.origin = '117 San Jacinto Blvd, Austin, TX 78701, United States';  // required
-estimate_params.destination = '800 Brazos Street, Austin, TX 78701, United States'; // required
+estimate_params.destination = '1601 S MoPac Expy, Austin, TX 78746, United States'; // required
 estimate_params.utc_offset = '-06:00'; // required
 
 brawndo.order.estimate(estimate_params, (err, data) => {
@@ -199,7 +176,7 @@ brawndo.order.create({
   details: details,
   properties: properties,
   // items: items,
-  company_id: '7df2b0bdb418157609c0d5766fb7fb12'
+  company_id: ''
 }, (err, data) => {
   if (err) {
     console.error(err);
@@ -208,8 +185,30 @@ brawndo.order.create({
   }
 })
 
+// brawndo.order.signature({
+//   order_id: '',
+//   company_id: ''
+// }, (err, data) => {
+//   if (err) {
+//     console.error(err);
+//   } else {
+//     console.log(data);
+//   }
+// })
+
+// brawndo.order.pickup_signature({
+//   order_id: '',
+//   company_id: ''
+// }, (err, data) => {
+//   if (err) {
+//     console.error(err);
+//   } else {
+//     console.log(data);
+//   }
+// })
+
 // brawndo.order.read({
-//   order_id: '9031c39a9262f9cf0f0b029e89c0a568'
+//   order_id: ''
 // }, (err, data) => {
 //   if (err) {
 //     console.error(err);
