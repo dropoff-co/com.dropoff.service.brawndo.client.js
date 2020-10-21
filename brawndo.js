@@ -16,10 +16,12 @@ var host = void(0);
 var API_ESTIMATE_PATH = '/estimate';
 var API_INFO_PATH = '/info';
 var API_ORDER_PATH = '/order';
+var API_ROUTED_ORDER_PATH = '/routed_order';
 
 var API_ESTIMATE_URL = void(0);
 var API_INFO_URL = void(0);
 var API_ORDER_URL = void(0);
+var API_ROUTED_ORDER_URL = void(0);
 
 module.exports.TEMPERATURES = {
   NA: 0,
@@ -142,6 +144,7 @@ module.exports.configure = function(params) {
   API_ESTIMATE_URL = api_url + API_ESTIMATE_PATH;
   API_INFO_URL = api_url + API_INFO_PATH;
   API_ORDER_URL = api_url + API_ORDER_PATH;
+  API_ROUTED_ORDER_URL = api_url + API_ROUTED_ORDER_URL;
   configured = true;
 };
 
@@ -192,12 +195,69 @@ module.exports.order.estimate = function(params, callback) {
     }));
 };
 
+/** NOTE: This is an EXPERIMENTAL FEATURE. Currently NOT supported.  */
+module.exports.order.estimatePost = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  if(params.find(p => !p.origin || !p.destination)){
+    throw new Error('Call requires pickup and destination query parameters');
+  }
+
+  request
+    .post(API_ESTIMATE_URL)
+    .set('Accept', 'application/json')
+    .send(params)
+    .use(signing_mw(API_ESTIMATE_PATH, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
 module.exports.order.create = function(params, callback) {
   if (!configured) {
     throw new Error('Call configure before calling the api');
   }
 
   var req = request.post(API_ORDER_URL);
+
+  if (params.company_id) {
+    req = req.query({
+      company_id : params.company_id
+    });
+    delete params.company_id;
+  }
+
+  req
+    .set('Accept', 'application/json')
+    .send(params)
+    .use(signing_mw(API_ORDER_PATH, function(error, response){
+      if (error) {
+        callback(error);
+      } else if (response.status === 200 && response.body) {
+        callback(void(0), response.body);
+      } else {
+        var error = new Error('response.status is ' + response.status);
+        error.response = response;
+        callback(error);
+      }
+    }));
+};
+
+module.exports.order.create_route = function(params, callback) {
+  if (!configured) {
+    throw new Error('Call configure before calling the api');
+  }
+
+  var req = request.post(API_ROUTED_ORDER_URL);
 
   if (params.company_id) {
     req = req.query({
