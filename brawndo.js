@@ -526,11 +526,12 @@ module.exports.order.tip.create = function(params, callback) {
 };
 
 module.exports.order.tip.read = function(params, callback) {
+  var order_id = params;
+
   if (!order_id) {
     throw new Error('Call requires order_id');
   }
 
-  var order_id = params;
 
   if (params.order_id && params.company_id) {
     order_id = params.order_id;
@@ -563,11 +564,12 @@ module.exports.order.tip.read = function(params, callback) {
 };
 
 module.exports.order.tip.delete = function(params, callback) {
+  var order_id = params;
+
   if (!order_id) {
     throw new Error('Call requires order_id');
   }
 
-  var order_id = params;
 
   if (params.order_id && params.company_id) {
     order_id = params.order_id;
