@@ -13,10 +13,12 @@ var private_key = void(0);
 var hasher_url = void(0);
 var host = void(0);
 
+var API_BULK_UPLOAD_PATH = '/bulkupload';
 var API_ESTIMATE_PATH = '/estimate';
 var API_INFO_PATH = '/info';
 var API_ORDER_PATH = '/order';
 
+var API_BULK_UPLOAD_URL = void(0);
 var API_ESTIMATE_URL = void(0);
 var API_INFO_URL = void(0);
 var API_ORDER_URL = void(0);
@@ -142,6 +144,7 @@ module.exports.configure = function(params) {
   API_ESTIMATE_URL = api_url + API_ESTIMATE_PATH;
   API_INFO_URL = api_url + API_INFO_PATH;
   API_ORDER_URL = api_url + API_ORDER_PATH;
+  API_BULK_UPLOAD_URL = api_url + API_BULK_UPLOAD_PATH;
   configured = true;
 };
 
@@ -153,6 +156,7 @@ module.exports.info = function(callback) {
       if (error) {
         callback(error);
       } else if (response.status === 200 && response.body) {
+        console.log('200')
         callback(void(0), response.body);
       } else {
         var error = new Error('response.status is ' + response.status);
@@ -749,3 +753,22 @@ module.exports.order.read = function(params, callback) {
 module.exports.order.simulate = function(params, callback) {
   startSimulation(params, callback);
 };
+
+module.exports.bulk_upload = function(params, callback) {
+  request
+    .post(API_BULK_UPLOAD_URL)
+    .attach('file', params.file_path)
+    .query({
+      company_id : params.company_id,
+      customer_id : params.customer_id
+    })
+    .use(signing_mw(API_BULK_UPLOAD_PATH, function(error, response) {
+      if (error) {
+        callback(error)
+      } else if (response.status === 200) {
+        callback(void(0))
+      } else {
+        callback(new Error('response.status is ' + response.status))
+      }
+    }))
+}
