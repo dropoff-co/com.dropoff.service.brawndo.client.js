@@ -758,15 +758,25 @@ module.exports.bulk_upload = function(params, callback) {
   request
     .post(API_BULK_UPLOAD_URL)
     .attach('file', params.file_path)
-    .query({
-      company_id : params.company_id,
-      customer_id : params.customer_id
-    })
     .use(signing_mw(API_BULK_UPLOAD_PATH, function(error, response) {
       if (error) {
         callback(error)
       } else if (response.status === 200) {
-        callback(void(0))
+        callback(void(0), response.body)
+      } else {
+        callback(new Error('response.status is ' + response.status))
+      }
+    }))
+};
+
+module.exports.bulk_upload.cancel = function(params, callback) {
+  request
+    .put(API_BULK_UPLOAD_URL)
+    .use(signing_mw(API_BULK_UPLOAD_PATH + `/${params.bulk_id}`, function(error, response) {
+      if (error) {
+        callback(error)
+      } else if (response.status === 200) {
+        callback(void(0), response.body)
       } else {
         callback(new Error('response.status is ' + response.status))
       }
